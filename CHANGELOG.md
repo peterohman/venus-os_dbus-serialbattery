@@ -64,6 +64,7 @@
 
 ## v1.5.x
 * Added: Daly BMS - Connect multiple BMS to the same RS485 port by @CaptKrisp
+* Added: GUIv2 by @mr-manuel
 * Added: Possibility to change the CAN bus speed by @mr-manuel
 * Added: Threshold, if `CCL = 0` or `DCL = 0` is reached to prevent flapping @mr-manuel
 * Changed: Calculate Time-to-Go until ESS -> Minimum SOC (unless grid fails), Active SOC limit or `SOC_LOW_WARNING` from `config.ini` by @mr-manuel
