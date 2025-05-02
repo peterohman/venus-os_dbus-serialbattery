@@ -84,6 +84,7 @@
 * Changed: Fixed issue, when calculated SOC is restored from dbus and BMS SOC is 0 by @mr-manuel
 * Changed: Fixed Seplos V3 cell balance status with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/213 by @marcelrv
 * Changed: Fixed serial port handling with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/211 by @WaldemarFech
+* Changed: Heltec BMS - Fixed issues with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/246 by @ramack
 * Changed: Improved driver and `config.default.ini` descriptions by @mr-manuel
 * Changed: JKBMS BLE - Reworked code by @mr-manuel
 * Changed: JKBMS CAN - Per default only address 0 is recognized. Change `BATTERY_ADDRESS` to match your device address by @Hooorny and @mr-manuel
