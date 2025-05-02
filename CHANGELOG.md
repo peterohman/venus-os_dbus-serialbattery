@@ -69,6 +69,7 @@
 * Added: Min/Max lifetime temperature to history class and battery template by @mr-manuel
 * Added: Pace BMS by @KoljaWindeler
 * Added: Possibility to add external sensor for SoC by @mr-manuel
+* Added: Show CVL also on cell voltage base by @mr-manuel
 * Added: Signal handler for clean service restart/shutdown by @mr-manuel
 * Added: UBMS CAN - support for Valence U-BMS by @gimx
 * Changed: A lot of under the hood optimizations by @mr-manuel
