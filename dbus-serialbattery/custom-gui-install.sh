@@ -407,6 +407,11 @@ else
 fi
 
 
+# TEMPORARY FIX until v3.70
+echo "Applying temporary fix for GUIv2 to enable Remote Console Color Mode..."
+dbus -y com.victronenergy.settings /Settings AddSetting Gui RemoteConsoleColorMode 1 i 0 1 > /dev/null
+
+
 # if files changed, restart gui
 if [ $filesChanged -gt 0 ]; then
 
