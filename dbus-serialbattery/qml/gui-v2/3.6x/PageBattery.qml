@@ -142,13 +142,6 @@ Page {
 			}
 
 			ListQuantity {
-				text: "Current (last 5 minutes avg.)"
-				dataItem.uid: root.bindPrefix + "/CurrentAvg"
-				preferredVisible: dataItem.valid
-				unit: VenusOS.Units_Amp
-			}
-
-			ListQuantity {
 				//% "Total Capacity"
 				text: qsTrId("devicelist_battery_total_capacity")
 				dataItem.uid: root.bindPrefix + "/Capacity"
@@ -198,13 +191,6 @@ Page {
 			ListTemperature {
 				text: CommonWords.battery_temperature
 				dataItem.uid: root.bindPrefix + "/Dc/0/Temperature"
-				preferredVisible: dataItem.valid
-				unit: Global.systemSettings.temperatureUnit
-			}
-
-			ListTemperature {
-				text: "MOSFET Temperature"
-				dataItem.uid: root.bindPrefix + "/System/MOSTemperature"
 				preferredVisible: dataItem.valid
 				unit: Global.systemSettings.temperatureUnit
 			}
@@ -280,60 +266,112 @@ Page {
 				secondaryText: Utils.secondsToString(dataItem.value)
 			}
 
-			ListText {
-				//% "Time-to-SoC 0%"
-				text: "Time-to-SoC 0%"
-				preferredVisible: dataItem.seen
-				dataItem.uid: root.bindPrefix + "/TimeToSoC/0"
-				secondaryText: dataItem.valid && dataItem.value != "" > 0 ? dataItem.value : "--"
-			}
-
-			ListText {
-				//% "Time-to-SoC 10%"
-				text: "Time-to-SoC 10%"
-				preferredVisible: dataItem.seen
-				dataItem.uid: root.bindPrefix + "/TimeToSoC/10"
-				secondaryText: dataItem.valid && dataItem.value != "" > 0 ? dataItem.value : "--"
-			}
-
-			ListText {
-				//% "Time-to-SoC 20%"
-				text: "Time-to-SoC 20%"
-				preferredVisible: dataItem.seen
-				dataItem.uid: root.bindPrefix + "/TimeToSoC/20"
-				secondaryText: dataItem.valid && dataItem.value != "" > 0 ? dataItem.value : "--"
-			}
-
-			ListText {
-				//% "Time-to-SoC 80%"
-				text: "Time-to-SoC 80%"
-				preferredVisible: dataItem.seen
-				dataItem.uid: root.bindPrefix + "/TimeToSoC/80"
-				secondaryText: dataItem.valid && dataItem.value != "" > 0 ? dataItem.value : "--"
-			}
-
-			ListText {
-				//% "Time-to-SoC 90%"
-				text: "Time-to-SoC 90%"
-				preferredVisible: dataItem.seen
-				dataItem.uid: root.bindPrefix + "/TimeToSoC/90"
-				secondaryText: dataItem.valid && dataItem.value != "" > 0 ? dataItem.value : "--"
-			}
-
-			ListText {
-				//% "Time-to-SoC 100%"
-				text: "Time-to-SoC 100%"
-				preferredVisible: dataItem.seen
-				dataItem.uid: root.bindPrefix + "/TimeToSoC/100"
-				secondaryText: dataItem.valid && dataItem.value != "" > 0 ? dataItem.value : "--"
-			}
-
 			ListRelayState {
 				dataItem.uid: root.bindPrefix + "/Relay/0/State"
 			}
 
 			ListAlarmState {
 				dataItem.uid: root.bindPrefix + "/Alarms/Alarm"
+			}
+
+			ListNavigation {
+				text: "dbus-serialbattery - General"
+				preferredVisible: cvl.valid || ccl.valid || dcl.valid
+				/*
+				preferredVisible: {
+					// mr-manuel/dbus-serialbattery
+					productId.value === 0xBA77
+					// Dr-Gigavolt/dbus-aggregate-batteries
+					|| productId.value === 0xBA44
+				}
+				*/
+				onClicked: {
+					Global.pageManager.pushPage("/pages/settings/devicelist/battery/PageBatteryDbusSerialbattery.qml",
+							{ "title": text, "bindPrefix": root.bindPrefix })
+				}
+			}
+
+			ListNavigation {
+				text: "dbus-serialbattery - Cell Voltages"
+				preferredVisible: cell3Voltage.valid
+				onClicked: {
+					Global.pageManager.pushPage("/pages/settings/devicelist/battery/PageBatteryDbusSerialbatteryCellVoltages.qml",
+							{ "title": text, "bindPrefix": root.bindPrefix })
+				}
+
+				VeQuickItem {
+					id: cell3Voltage
+					uid: root.bindPrefix + "/Voltages/Cell3"
+				}
+			}
+
+			ListNavigation {
+				text: "dbus-serialbattery - Settings"
+				// show only for mr-manuel/dbus-serialbattery (productId registered at Victron)
+				preferredVisible: productId.value === 0xBA77
+				onClicked: {
+					Global.pageManager.pushPage("/pages/settings/devicelist/battery/PageBatteryDbusSerialbatterySettings.qml",
+							{ "title": text, "bindPrefix": root.bindPrefix })
+				}
+			}
+
+			ListNavigation {
+				text: "dbus-serialbattery - Time to SoC"
+				preferredVisible: timeToSoc0.seen ||
+						timeToSoc5.seen ||
+						timeToSoc10.seen ||
+						timeToSoc15.seen ||
+						timeToSoc20.seen ||
+						timeToSoc80.seen ||
+						timeToSoc85.seen ||
+						timeToSoc90.seen ||
+						timeToSoc95.seen ||
+						timeToSoc100.seen
+				onClicked: {
+					Global.pageManager.pushPage("/pages/settings/devicelist/battery/PageBatteryDbusSerialbatteryTimeToSoc.qml",
+							{ "title": text, "bindPrefix": root.bindPrefix })
+				}
+
+				VeQuickItem {
+					id: timeToSoc0
+					uid: root.bindPrefix + "/TimeToSoC/0"
+				}
+				VeQuickItem {
+					id: timeToSoc5
+					uid: root.bindPrefix + "/TimeToSoC/5"
+				}
+				VeQuickItem {
+					id: timeToSoc10
+					uid: root.bindPrefix + "/TimeToSoC/10"
+				}
+				VeQuickItem {
+					id: timeToSoc15
+					uid: root.bindPrefix + "/TimeToSoC/15"
+				}
+				VeQuickItem {
+					id: timeToSoc20
+					uid: root.bindPrefix + "/TimeToSoC/20"
+				}
+				VeQuickItem {
+					id: timeToSoc80
+					uid: root.bindPrefix + "/TimeToSoC/80"
+				}
+				VeQuickItem {
+					id: timeToSoc85
+					uid: root.bindPrefix + "/TimeToSoC/85"
+				}
+				VeQuickItem {
+					id: timeToSoc90
+					uid: root.bindPrefix + "/TimeToSoC/90"
+				}
+				VeQuickItem {
+					id: timeToSoc95
+					uid: root.bindPrefix + "/TimeToSoC/95"
+				}
+				VeQuickItem {
+					id: timeToSoc100
+					uid: root.bindPrefix + "/TimeToSoC/100"
+				}
 			}
 
 			ListNavigation {
@@ -348,20 +386,6 @@ Page {
 				BatteryDetails {
 					id: batteryDetails
 					bindPrefix: root.bindPrefix
-				}
-			}
-
-			ListNavigation {
-				text: "Cell Voltages"
-				preferredVisible: cell3Voltage.valid
-				onClicked: {
-					Global.pageManager.pushPage("/pages/settings/devicelist/battery/PageBatteryCellVoltages.qml",
-							{ "title": text, "bindPrefix": root.bindPrefix })
-				}
-
-				VeQuickItem {
-					id: cell3Voltage
-					uid: root.bindPrefix + "/Voltages/Cell3"
 				}
 			}
 

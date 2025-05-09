@@ -62,6 +62,7 @@
 * Added: Daly CAN - Read capacity with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/217 from @atillack
 * Added: Error handling for `config.ini` by @mr-manuel
 * Added: Felicity BMS by @versager
+* Added: GUIv2 - New page where you see all important data in one place for easy troubleshooting by @mr-manuel
 * Added: JKBMS CAN - Extended protocol with version V2 by @Hooorny and @mr-manuel
 * Added: Kilovault HLX+ BMS by @alexphredorg
 * Added: LiTime BMS by @calledit
@@ -74,8 +75,8 @@
 * Added: UBMS CAN - support for Valence U-BMS by @gimx
 * Changed: A lot of under the hood optimizations by @mr-manuel
 * Changed: Apply `SOC_RESET_CELL_VOLTAGE` after `SOC_RESET_AFTER_DAYS` regardless of whether the battery is in absorption, bulk, or float mode https://github.com/mr-manuel/venus-os_dbus-serialbattery/issues/123 by @mr-manuel
-* Changed: BLE - Reworked log notifications be more helpful by @mr-manuel
 * Changed: BLE - Reworked installation for external Bluetooth USB dongle by @Felixrising & @mr-manuel
+* Changed: BLE - Reworked log notifications be more helpful by @mr-manuel
 * Changed: Consumed capacity must be negative values by @mr-manuel
 * Changed: Daly CAN - Driver improvements by @transistorgit
 * Changed: Daly CAN - Refactored driver to match new CAN standard by @mr-manuel and @transistorgit
@@ -88,6 +89,8 @@
 * Changed: Fixed issue, when calculated SOC is restored from dbus and BMS SOC is 0 by @mr-manuel
 * Changed: Fixed Seplos V3 cell balance status with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/213 by @marcelrv
 * Changed: Fixed serial port handling with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/211 by @WaldemarFech
+* Changed: GUIv1 - Added note that it's not developed anymore by @mr-manuel
+* Changed: GUIv2 - Moved all dbus-serialbattery stuff to custom pages to avoid confusion in Victron support requests by @mr-manuel
 * Changed: Heltec BMS - Fixed issues with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/246 by @ramack
 * Changed: Improved driver and `config.default.ini` descriptions by @mr-manuel
 * Changed: JKBMS BLE - Reworked code by @mr-manuel

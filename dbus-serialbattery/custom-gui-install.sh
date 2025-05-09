@@ -211,36 +211,60 @@ if [ -d "$pathGuiV2" ]; then
                 ((filesChanged++))
             fi
 
-            # copy new PageBatteryCellVoltages if changed
-            if ! cmp -s "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryCellVoltages.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryCellVoltages.qml"
+            # copy new PageBatteryDbusSerialbattery if changed
+            if ! cmp -s "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryDbusSerialbattery.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryDbusSerialbattery.qml"
             then
-                echo "Copying PageBatteryCellVoltages.qml..."
-                cp "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryCellVoltages.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/"
+                echo "Copying PageBatteryDbusSerialbattery.qml..."
+                cp "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryDbusSerialbattery.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/"
                 ((filesChanged++))
             fi
 
-            # copy new PageBatteryParameters.qml if changed
-            if ! cmp -s "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryParameters.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryParameters.qml"
+            # copy new PageBatteryDbusSerialbatteryCellVoltages if changed
+            if ! cmp -s "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryDbusSerialbatteryCellVoltages.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryDbusSerialbatteryCellVoltages.qml"
             then
-                echo "Copying PageBatteryParameters.qml..."
-                cp "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryParameters.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/"
+                echo "Copying PageBatteryDbusSerialbatteryCellVoltages.qml..."
+                cp "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryDbusSerialbatteryCellVoltages.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/"
                 ((filesChanged++))
             fi
 
-            # copy new PageBatterySettings.qml if changed
-            if ! cmp -s "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatterySettings.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/PageBatterySettings.qml"
+            # copy new PageBatteryDbusSerialbatterySettings if changed
+            if ! cmp -s "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryDbusSerialbatterySettings.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryDbusSerialbatterySettings.qml"
             then
-                echo "Copying PageBatterySettings.qml..."
-                cp "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatterySettings.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/"
+                echo "Copying PageBatteryDbusSerialbatterySettings.qml..."
+                cp "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryDbusSerialbatterySettings.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/"
                 ((filesChanged++))
             fi
 
-            # copy new PageLynxIonIo.qml if changed
-            if ! cmp -s "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageLynxIonIo.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/PageLynxIonIo.qml"
+            # copy new PageBatteryDbusSerialbatteryTimeToSoc if changed
+            if ! cmp -s "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryDbusSerialbatteryTimeToSoc.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryDbusSerialbatteryTimeToSoc.qml"
             then
-                echo "Copying PageLynxIonIo.qml..."
-                cp "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageLynxIonIo.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/"
+                echo "Copying PageBatteryDbusSerialbatteryTimeToSoc.qml..."
+                cp "/data/apps/dbus-serialbattery/qml/gui-v2/${sourceQmlDir}/PageBatteryDbusSerialbatteryTimeToSoc.qml" "/opt/victronenergy/gui-v2/Victron/VenusOS/pages/settings/devicelist/battery/"
                 ((filesChanged++))
+            fi
+
+            # delete old PageBatteryCellVoltages if present
+            if [ -f "/data/apps/overlay-fs/data/gui-v2/upper/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryCellVoltages.qml" ]; then
+                echo "Deleting old PageBatteryCellVoltages.qml..."
+                rm -f "/data/apps/overlay-fs/data/gui-v2/upper/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryCellVoltages.qml"
+            fi
+
+            # delete old PageBatteryParameters.qml if present
+            if [ -f "/data/apps/overlay-fs/data/gui-v2/upper/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryParameters.qml" ]; then
+                echo "Deleting old PageBatteryParameters.qml..."
+                rm -f "/data/apps/overlay-fs/data/gui-v2/upper/Victron/VenusOS/pages/settings/devicelist/battery/PageBatteryParameters.qml"
+            fi
+
+            # delete old PageBatterySettings.qml if present
+            if [ -f "/data/apps/overlay-fs/data/gui-v2/upper/Victron/VenusOS/pages/settings/devicelist/battery/PageBatterySettings.qml" ]; then
+                echo "Deleting old PageBatterySettings.qml..."
+                rm -f "/data/apps/overlay-fs/data/gui-v2/upper/Victron/VenusOS/pages/settings/devicelist/battery/PageBatterySettings.qml"
+            fi
+
+            # delete old PageLynxIonIo.qml if present
+            if [ -f "/data/apps/overlay-fs/data/gui-v2/upper/Victron/VenusOS/pages/settings/devicelist/battery/PageLynxIonIo.qml" ]; then
+                echo "Deleting old PageLynxIonIo.qml..."
+                rm -f "/data/apps/overlay-fs/data/gui-v2/upper/Victron/VenusOS/pages/settings/devicelist/battery/PageLynxIonIo.qml"
             fi
 
 
@@ -254,10 +278,10 @@ if [ -d "$pathGuiV2" ]; then
             if (( $venusVersionNumber < $versionNumber )); then
                 echo "Venus OS $(head -n 1 /opt/victronenergy/version) is older than v3.60~25. Fixing object names... "
                 fileList="$qmlDir/PageBattery.qml"
-                fileList+=" $qmlDir/PageBatteryCellVoltages.qml"
-                fileList+=" $qmlDir/PageBatteryParameters.qml"
-                fileList+=" $qmlDir/PageBatterySettings.qml"
-                fileList+=" $qmlDir/PageLynxIonIo.qml"
+                fileList+=" $qmlDir/PageBatteryDbusSerialbattery.qml"
+                fileList+=" $qmlDir/PageBatteryDbusSerialbatteryCellVoltages.qml"
+                fileList+=" $qmlDir/PageBatteryDbusSerialbatterySettings.qml"
+                fileList+=" $qmlDir/PageBatteryDbusSerialbatteryTimeToSoc.qml"
                 for file in $fileList ; do
                     sed -i -e 's/model: ObjectModel/model: VisibleItemModel/' "$file"
                 done
