@@ -7,8 +7,13 @@
 # else it won't work to install an older version
 
 
-# check if at least 30 MB free space is available on the system partition
-freeSpace=$(df -m /data | awk 'NR==2 {print $4}')
+# check if /data/apps path exists
+if [ ! -d "/data/apps" ]; then
+    mkdir -p /data/apps
+fi
+
+# check if at least 30 MB free space is available on the data partition
+freeSpace=$(df -m /data/apps | awk 'NR==2 {print $4}')
 if [ $freeSpace -lt 30 ]; then
     echo
     echo

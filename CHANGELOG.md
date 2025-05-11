@@ -78,6 +78,7 @@
 * Changed: Apply `SOC_RESET_CELL_VOLTAGE` after `SOC_RESET_AFTER_DAYS` regardless of whether the battery is in absorption, bulk, or float mode https://github.com/mr-manuel/venus-os_dbus-serialbattery/issues/123 by @mr-manuel
 * Changed: BLE - Reworked installation for external Bluetooth USB dongle by @Felixrising & @mr-manuel
 * Changed: BLE - Reworked log notifications be more helpful by @mr-manuel
+* Changed: Check /data/apps path for required free space instead of /data. This allows /data/apps to be mounted on another media by @mr-manuel
 * Changed: Consumed capacity must be negative values by @mr-manuel
 * Changed: Daly CAN - Driver improvements by @transistorgit
 * Changed: Daly CAN - Refactored driver to match new CAN standard by @mr-manuel and @transistorgit
