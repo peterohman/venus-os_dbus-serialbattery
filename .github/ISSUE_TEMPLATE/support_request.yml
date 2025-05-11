@@ -113,6 +113,19 @@ body:
       required: true
 
   - type: dropdown
+    id: venus_os_image_type
+    attributes:
+      label: Venus OS image type
+      description: Select your Venus OS image type. Can be found in the remote console/GUI under `Settings` -> `General` -> `Firmware` -> `Online updates` -> `Image type`.
+      multiple: false
+      options:
+        - ⚠️ Choose your option ⚠️
+        - Normal
+        - Large
+    validations:
+      required: true
+
+  - type: dropdown
     id: bms_type
     attributes:
       label: BMS type

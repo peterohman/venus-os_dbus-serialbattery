@@ -22,6 +22,9 @@ from utils import (
     EXTERNAL_SENSOR_DBUS_DEVICE,
     EXTERNAL_SENSOR_DBUS_PATH_CURRENT,
     EXTERNAL_SENSOR_DBUS_PATH_SOC,
+    get_venus_os_version,
+    get_venus_os_image_type,
+    get_venus_os_device_type,
     logger,
     POLL_INTERVAL,
     validate_config_values,
@@ -287,16 +290,8 @@ def main():
                     )
                     exit_driver(None, None, 1)
 
-    # read the version of Venus OS
-    with open("/opt/victronenergy/version", "r") as f:
-        venus_version = f.readline().strip()
-
-    # read the GX device type
-    with open("/sys/firmware/devicetree/base/model", "r") as f:
-        gx_device_type = f.readline().strip()
-
     # show Venus OS version and device type
-    logger.info("Venus OS " + venus_version + " running on " + gx_device_type)
+    logger.info("Venus OS " + get_venus_os_version() + " (" + get_venus_os_image_type() + ") running on " + get_venus_os_device_type())
 
     # show the version of the driver
     logger.info("dbus-serialbattery v" + str(DRIVER_VERSION))

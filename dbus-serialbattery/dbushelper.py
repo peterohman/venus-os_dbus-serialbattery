@@ -5,7 +5,7 @@ import platform
 import dbus
 import traceback
 from time import sleep, time
-from utils import logger, publish_config_variables
+from utils import get_venus_os_version, get_venus_os_device_type, logger, publish_config_variables
 import utils
 from xml.etree import ElementTree
 import requests
@@ -1510,19 +1510,11 @@ class DbusHelper:
 
         # logger.info("Uploading telemetry data")
 
-        # read the version of Venus OS
-        with open("/opt/victronenergy/version", "r") as f:
-            venus_version = f.readline().strip()
-
-        # read the device type
-        with open("/sys/firmware/devicetree/base/model", "r") as f:
-            gx_device_type = f.readline().strip()
-
         # assemble the data to be uploaded
         data = {
             "vrm_id": get_vrm_portal_id(),
-            "venus_os_version": venus_version,
-            "gx_device_type": gx_device_type,
+            "venus_os_version": get_venus_os_version(),
+            "gx_device_type": get_venus_os_device_type(),
             "driver_version": utils.DRIVER_VERSION,
             "device_instance": self.instance,
             "bms_type": self.battery.type,

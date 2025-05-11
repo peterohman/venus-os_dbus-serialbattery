@@ -14,7 +14,7 @@ import serial
 
 
 # CONSTANTS
-DRIVER_VERSION: str = "2.0.20250509dev"
+DRIVER_VERSION: str = "2.0.20250511dev"
 """
 current version of the driver
 """
@@ -816,6 +816,36 @@ def publish_config_variables(dbusservice) -> None:
             continue
         if isinstance(value, float) or isinstance(value, int) or isinstance(value, str) or isinstance(value, List):
             dbusservice.add_path(f"/Info/Config/{variable}", value)
+
+
+def get_venus_os_version() -> str:
+    """
+    Get the Venus OS version.
+
+    :return: Venus OS version, e.g. v3.60
+    """
+    with open("/opt/victronenergy/version", "r") as f:
+        return f.readline().strip()
+
+
+def get_venus_os_image_type() -> str:
+    """
+    Get the Venus OS image type
+
+    :return: Venus OS image type: normal or large
+    """
+    with open("/etc/venus/image-type", "r") as f:
+        return f.readline().strip()
+
+
+def get_venus_os_device_type() -> str:
+    """
+    Get the Venus OS device type.
+
+    :return: Venus OS device type, e.g. Venus GX, Cerbo GX, etc.
+    """
+    with open("/sys/firmware/devicetree/base/model", "r") as f:
+        return f.readline().strip()
 
 
 # Save the local variables to publish them wtih publish_config_variables() to the dbus
