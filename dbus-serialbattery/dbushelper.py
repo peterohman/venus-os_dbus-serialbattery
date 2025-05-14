@@ -1030,7 +1030,7 @@ class DbusHelper:
         self._dbusservice["/Alarms/LowChargeTemperature"] = self.battery.protection.low_charge_temperature
         self._dbusservice["/Alarms/HighTemperature"] = self.battery.protection.high_temperature
         self._dbusservice["/Alarms/LowTemperature"] = self.battery.protection.low_temperature
-        self._dbusservice["/Alarms/BmsCable"] = 2 if self.battery.block_because_disconnect else 0
+        self._dbusservice["/Alarms/BmsCable"] = 2 if self.battery.block_because_disconnect else 1 if not self.battery.online else 0
         self._dbusservice["/Alarms/HighInternalTemperature"] = self.battery.protection.high_internal_temperature
         self._dbusservice["/Alarms/FuseBlown"] = self.battery.protection.fuse_blown
 
