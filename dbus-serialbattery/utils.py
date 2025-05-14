@@ -655,6 +655,25 @@ def bytearray_to_string(data: bytearray) -> str:
     return "".join(f"\\x{byte:02x}" for byte in data)
 
 
+def get_connection_error_message(battery_online: bool, suffix: str = None) -> None:
+    """
+    This method is used to check if the connection to the BMS is successful.
+    It returns True if the connection is successful, otherwise False.
+    It also handles the error logging if the connection is lost.
+
+    :battery_online: Boolean indicating if the battery is online
+    :suffix: Optional suffix to add to the error message
+    :return: True if the connection is successful, otherwise False
+    """
+    if battery_online is None:
+        logger.info("  |- No battery recognized")
+        return
+
+    if battery_online:
+        logger.error(">>> No response from battery. Connection lost or battery not recognized. Check cabeling!" + (" " + suffix if suffix else ""))
+        return
+
+
 def open_serial_port(port: str, baud: int) -> Union[serial.Serial, None]:
     """
     Open a serial port.
@@ -680,6 +699,7 @@ def read_serialport_data(
     length_check: int,
     length_fixed: Union[int, None] = None,
     length_size: str = "B",
+    battery_online: bool = True,
 ) -> bytearray:
     """
     Read data from a serial port
@@ -690,6 +710,7 @@ def read_serialport_data(
     :param length_check: Length of the checksum
     :param length_fixed: Fixed length of the data, if not set it will be read from the data
     :param length_size: Size of the length byte, can be "B", "H", "I" or "L"
+    :param battery_online: Boolean indicating if the battery is online
     :return: Data read from the serial port
     """
     try:
@@ -712,7 +733,7 @@ def read_serialport_data(
             toread = ser.inWaiting()
             count += 1
             if count > 50:
-                logger.error(">>> ERROR: No reply - returning")
+                get_connection_error_message(battery_online)
                 return False
 
         # logger.info('serial data toread ' + str(toread))
@@ -721,7 +742,7 @@ def read_serialport_data(
             length = length_fixed
         else:
             if len(res) < (length_pos + length_byte_size):
-                logger.error(">>> ERROR: No reply - returning [len:" + str(len(res)) + "]")
+                get_connection_error_message(battery_online, "[len:" + str(len(res)) + "]")
                 return False
             length = unpack_from(">" + length_size, res, length_pos)[0]
 
@@ -736,7 +757,7 @@ def read_serialport_data(
             sleep(0.005)
             count += 1
             if count > 150:
-                logger.error(">>> ERROR: No reply - returning [len:" + str(len(data)) + "/" + str(length + length_check) + "]")
+                get_connection_error_message(battery_online, "[len:" + str(len(data)) + "/" + str(length + length_check) + "]")
                 return False
 
         return data
@@ -765,6 +786,7 @@ def read_serial_data(
     length_check: int,
     length_fixed: Union[int, None] = None,
     length_size: str = "B",
+    battery_online: bool = True,
 ) -> bytearray:
     """
     Read data from a serial port
@@ -776,12 +798,13 @@ def read_serial_data(
     :param length_check: Length of the checksum
     :param length_fixed: Fixed length of the data, if not set it will be read from the data
     :param length_size: Size of the length byte, can be "B", "H", "I" or "L"
+    :param battery_online: Boolean indicating if the battery is online
     :return: Data read from the serial port
     """
     ser = None  # Initialize ser to None
     try:
         with serial.Serial(port, baudrate=baud, timeout=0.1) as ser:
-            return read_serialport_data(ser, command, length_pos, length_check, length_fixed, length_size)
+            return read_serialport_data(ser, command, length_pos, length_check, length_fixed, length_size, battery_online)
 
     except serial.SerialException as e:
         logger.error(e)

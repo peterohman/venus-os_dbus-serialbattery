@@ -4,7 +4,7 @@
 # Added by https://github.com/KoljaWindeler
 
 from battery import Battery, Cell
-from utils import bytearray_to_string, read_serial_data, logger, USE_PORT_AS_UNIQUE_ID
+from utils import bytearray_to_string, read_serial_data, get_connection_error_message, logger, USE_PORT_AS_UNIQUE_ID
 from struct import unpack_from
 import sys
 
@@ -346,6 +346,7 @@ class Jkbms_pb(Battery):
             self.LENGTH_CHECK,  # ignored
             length,
             self.LENGTH_SIZE,  # ignored
+            battery_online=self.online,
         )
         if data is False:
             return False
@@ -359,7 +360,7 @@ class Jkbms_pb(Battery):
         if data[0] == 0x55 and data[1] == 0xAA:
             return data
         else:
-            logger.error(">>> ERROR: Incorrect Reply ")
+            get_connection_error_message(self.online)
             return False
 
     def modbusCrc(self, msg: str):

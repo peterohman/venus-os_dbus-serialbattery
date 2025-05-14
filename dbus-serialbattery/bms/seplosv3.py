@@ -11,7 +11,7 @@ from typing import Union
 import ext.minimalmodbus as minimalmodbus
 import serial
 from battery import Battery, Cell, Protection
-from utils import logger, USE_BMS_DVCC_VALUES
+from utils import get_connection_error_message, logger, USE_BMS_DVCC_VALUES
 
 RETRYCNT = 3
 
@@ -78,7 +78,7 @@ class Seplosv3(Battery):
         for self.slaveaddress in self.slaveaddresses:
             mbdev = self.get_modbus(self.slaveaddress)
             if len(self.slaveaddresses) > 1:
-                logger.info(f"|- on slave address {self.slaveaddress}")
+                logger.info(f"  |- on slave address {self.slaveaddress}")
 
             for n in range(1, RETRYCNT):
                 try:
@@ -122,7 +122,7 @@ class Seplosv3(Battery):
 
         # give the user a feedback that no BMS was found
         if not found:
-            logger.error(">>> No reply - returning")
+            get_connection_error_message(self.online)
         else:
             result = self.get_settings()
             result = result and self.refresh_data()

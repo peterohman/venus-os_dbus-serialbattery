@@ -6,7 +6,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from battery import Battery, Cell
-from utils import read_serial_data, logger, bytearray_to_string
+from utils import read_serial_data, get_connection_error_message, logger, bytearray_to_string
 from struct import unpack_from
 import re
 import sys
@@ -221,6 +221,7 @@ class EG4_Lifepower(Battery):
             self.LENGTH_POS,
             self.LENGTH_CHECK,
             self.LENGTH_FIXED,
+            battery_online=self.online,
         )
         if data is False:
             logger.debug(">>> ERROR: Incorrect Data")
@@ -230,5 +231,5 @@ class EG4_Lifepower(Battery):
         if data[-1] == 13:
             return data
         else:
-            logger.error(">>> ERROR: Incorrect Reply")
+            get_connection_error_message(self.online)
             return False

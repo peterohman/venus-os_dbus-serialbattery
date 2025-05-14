@@ -4,7 +4,7 @@
 # Updated by https://github.com/peterohman
 
 from battery import Battery, Cell
-from utils import logger
+from utils import get_connection_error_message, logger
 import serial
 from time import sleep
 import sys
@@ -44,7 +44,7 @@ class HLPdataBMS4S(Battery):
 
         # give the user a feedback that no BMS was found
         if not result:
-            logger.error(">>> ERROR: No reply - returning")
+            get_connection_error_message(self.online)
 
         return result
 

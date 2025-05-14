@@ -255,7 +255,7 @@ class standalone_serialbattery:
             for bms_type in bms_types:
                 if bms_type not in [bms["bms"].__name__ for bms in supported_bms_types]:
                     logger.error(
-                        f'ERROR >>> BMS type "{bms_type}" is not supported. Supported BMS types are: '
+                        f'>>> BMS type "{bms_type}" is not supported. Supported BMS types are: '
                         + f"{', '.join([bms['bms'].__name__ for bms in supported_bms_types])}"
                         + "; Disabled by default: ANT, MNB, Sinowealth"
                     )
@@ -268,7 +268,7 @@ class standalone_serialbattery:
             for bms_type in BMS_TYPE:
                 if bms_type not in [bms["bms"].__name__ for bms in self.supported_bms_types]:
                     logging.error(
-                        f'ERROR >>> BMS type "{bms_type}" is not supported. Supported BMS types are: '
+                        f'>>> BMS type "{bms_type}" is not supported. Supported BMS types are: '
                         + f"{', '.join([bms['bms'].__name__ for bms in self.supported_bms_types])}"
                         + "; Disabled by default: ANT, MNB, Sinowealth"
                     )
@@ -403,9 +403,7 @@ class standalone_serialbattery:
 
         if not battery_found:
             logging.error(
-                "ERROR >>> No battery connection at "
-                + self.devpath
-                + (" and this Modbus addresses: " + ", ".join(BATTERY_ADDRESSES) if BATTERY_ADDRESSES else "")
+                ">>> No battery connection at " + self.devpath + (" and this Modbus addresses: " + ", ".join(BATTERY_ADDRESSES) if BATTERY_ADDRESSES else "")
             )
             raise Exception("BMS DEVICE NOT FOUND")
 

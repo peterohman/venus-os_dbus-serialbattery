@@ -11,7 +11,7 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 from battery import Battery, Cell
-from utils import bytearray_to_string, logger
+from utils import bytearray_to_string, get_connection_error_message, logger
 from struct import unpack_from
 from time import sleep, time
 import sys
@@ -343,7 +343,7 @@ class Jkbms_Can(Battery):
         # sum of all data checks except for alarms
         logger.debug("Data check: %d" % (data_check))
         if data_check == 0:
-            logger.error(">>> ERROR: No reply - returning")
+            get_connection_error_message(self.online)
             return False
 
         # check if all needed data is available, else wait shortly and proceed with next iteration

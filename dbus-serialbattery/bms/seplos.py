@@ -5,7 +5,7 @@
 # https://github.com/Louisvdw/dbus-serialbattery/pull/530
 
 from battery import Protection, Battery, Cell
-from utils import logger
+from utils import get_connection_error_message, logger
 import serial
 import sys
 
@@ -119,7 +119,7 @@ class Seplos(Battery):
 
         # give the user a feedback that no BMS was found
         if not result:
-            logger.error(">>> ERROR: No reply - returning")
+            get_connection_error_message(self.online)
 
         return result
 

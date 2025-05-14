@@ -288,6 +288,7 @@ class Sinowealth(Battery):
             self.LENGTH_POS,
             self.LENGTH_CHECK,
             int(self.generate_command(command)[2]),
+            battery_online=self.online,
         )
         if data is False:
             return False

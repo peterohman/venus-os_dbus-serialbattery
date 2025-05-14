@@ -99,6 +99,7 @@
 * Changed: GUIv2 - Moved all dbus-serialbattery stuff to custom pages to avoid confusion in Victron support requests by @mr-manuel
 * Changed: Heltec BMS - Fixed issues with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/246 by @ramack
 * Changed: Improved driver and `config.default.ini` descriptions by @mr-manuel
+* Changed: Improved some error messages for better understanding by @mr-manuel
 * Changed: JKBMS BLE - Reworked code by @mr-manuel
 * Changed: JKBMS CAN - Per default only address 0 is recognized. Change `BATTERY_ADDRESS` to match your device address by @Hooorny and @mr-manuel
 * Changed: Licensing from MIT license to GNU AGPLv3 license by @mr-manuel

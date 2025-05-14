@@ -197,6 +197,9 @@ def main():
         retry = 1
         retries = 3
         while retry <= retries:
+            if retry > 1:
+                logger.info("")
+
             logger.info("-- Testing BMS: " + str(retry) + " of " + str(retries) + " rounds")
             # Create a new battery object that can read the battery and run connection test
             for test in expected_bms_types:
@@ -211,7 +214,7 @@ def main():
                         _bms_address = None
 
                     logger.info(
-                        "Testing " + test["bms"].__name__ + (' at address "' + bytearray_to_string(_bms_address) + '"' if _bms_address is not None else "")
+                        "  Testing " + test["bms"].__name__ + (' at address "' + bytearray_to_string(_bms_address) + '"' if _bms_address is not None else "")
                     )
                     batteryClass = test["bms"]
                     baud = test["baud"] if "baud" in test else None
@@ -258,7 +261,7 @@ def main():
             logger.info("No Port needed")
             return "/dev/ttyUSB9"
         else:
-            logger.error("ERROR >>> No port specified in the command line arguments")
+            logger.error(">>> No port specified in the command line arguments")
             sleep(60)
             exit_driver(None, None, 1)
 
@@ -286,7 +289,7 @@ def main():
             for bms_type in bms_types:
                 if bms_type not in [bms["bms"].__name__ for bms in supported_bms_types]:
                     logger.error(
-                        f'ERROR >>> BMS type "{bms_type}" is not supported. Supported BMS types are: '
+                        f'>>> BMS type "{bms_type}" is not supported. Supported BMS types are: '
                         + f"{', '.join([bms['bms'].__name__ for bms in supported_bms_types])}"
                         + "; Disabled by default: ANT, MNB, Sinowealth"
                     )
@@ -309,7 +312,7 @@ def main():
         """
 
         if len(sys.argv) <= 2:
-            logger.error("ERROR >>> Bluetooth address is missing in the command line arguments")
+            logger.error(">>> Bluetooth address is missing in the command line arguments")
             sleep(60)
             exit_driver(None, None, 1)
         else:
@@ -332,7 +335,7 @@ def main():
                 from bms.lltjbd_ble import LltJbd_Ble  # noqa: F401
 
             else:
-                logger.error("ERROR >>> Unknown Bluetooth BMS type: " + port)
+                logger.error(">>> Unknown Bluetooth BMS type: " + port)
                 logger.error("Supported Bluetooth BMS types (CASE SENSITIVE!): Jkbms_Ble, Kilovault_Ble, LiTime_Ble, LltJbd_Ble")
                 sleep(60)
                 exit_driver(None, None, 1)
@@ -449,7 +452,7 @@ def main():
 
     if not battery_found:
         logger.error(
-            f"ERROR >>> No battery connection at {port}"
+            f">>> No battery connection at {port}"
             + (" and this bus addresses: " + ", ".join(BATTERY_ADDRESSES) if BATTERY_ADDRESSES else "")
             + (f" {ble_address}" if port.endswith("_Ble") else "")
         )
@@ -468,7 +471,7 @@ def main():
         helper[key_address] = DbusHelper(battery[key_address], key_address)
         if not helper[key_address].setup_vedbus():
             logger.error(
-                f"ERROR >>> Problem with battery set up at {port}"
+                f">>> Problem with battery set up at {port}"
                 + (" and this bus address: " + ", ".join(BATTERY_ADDRESSES) if BATTERY_ADDRESSES else "")
                 + (f" {ble_address}" if port.endswith("_Ble") else "")
             )

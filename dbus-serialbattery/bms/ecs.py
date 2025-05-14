@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 from battery import Protection, Battery, Cell
 from utils import (
+    get_connection_error_message,
     logger,
     GREENMETER_ADDRESS,
     LIPRO_CELL_COUNT,
@@ -77,7 +78,7 @@ class Ecs(Battery):
 
         # give the user a feedback that no BMS was found
         if not result:
-            logger.error(">>> ERROR: No reply - returning")
+            get_connection_error_message(self.online)
 
         return result
 

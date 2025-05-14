@@ -440,6 +440,7 @@ class Pace(Battery):
             self.LENGTH_CHECK,  # ignored
             length,
             self.LENGTH_SIZE,  # ignored
+            battery_online=self.online,
         )
         if data is False:
             return False

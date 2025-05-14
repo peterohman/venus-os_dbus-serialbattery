@@ -125,6 +125,7 @@ class ANT(Battery):
             self.LENGTH_POS,
             self.LENGTH_CHECK,
             self.LENGTH_FIXED,
+            battery_online=self.online,
         )
         if data is False:
             logger.error(">>> ERROR: Incorrect Data")

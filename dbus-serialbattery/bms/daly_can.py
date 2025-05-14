@@ -11,6 +11,7 @@ from battery import Battery, Cell
 from utils import (
     BATTERY_CAPACITY,
     bytearray_to_string,
+    get_connection_error_message,
     INVERT_CURRENT_MEASUREMENT,
     logger,
     AUTO_RESET_SOC,
@@ -441,7 +442,7 @@ class Daly_Can(Battery):
             # sum of all data checks except for alarms
             logger.debug("Data check: %d" % (data_check))
             if data_check == 0:
-                logger.error(">>> ERROR: No reply - returning")
+                get_connection_error_message(self.online)
                 return False
 
             return True

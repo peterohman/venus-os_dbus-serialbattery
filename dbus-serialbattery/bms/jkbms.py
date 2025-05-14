@@ -329,6 +329,7 @@ class Jkbms(Battery):
             self.LENGTH_CHECK,
             None,
             self.LENGTH_SIZE,
+            battery_online=self.online,
         )
         if data is False:
             return False

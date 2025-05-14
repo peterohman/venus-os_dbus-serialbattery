@@ -290,7 +290,7 @@ class Battery(ABC):
         self.type: str = "Generic"
         self.poll_interval: int = 1000
         self.dbus_external_objects: dict = None
-        self.online: bool = True
+        self.online: bool = None
         self.connection_info: str = "Initializing..."
         self.hardware_version: str = None
         self.cell_count: int = None

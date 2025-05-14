@@ -274,7 +274,14 @@ class Felicity(Battery):
 
     def read_serial_data_felicity(self, command):
         # use the read_serial_data() function to read the data and then do BMS spesific checks (crc, start bytes, etc)
-        data = read_serial_data(self.generate_command(command), self.port, self.baud_rate, self.LENGTH_POS, self.LENGTH_CHECK)
+        data = read_serial_data(
+            self.generate_command(command),
+            self.port,
+            self.baud_rate,
+            self.LENGTH_POS,
+            self.LENGTH_CHECK,
+            battery_online=self.online,
+        )
         # logger.debug(">>> INFO: Query: %s",self.generate_command(command))
         # logger.debug(">>> INFO: Result All: %s", data)
         if data is False:

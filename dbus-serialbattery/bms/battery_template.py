@@ -352,9 +352,15 @@ class BatteryTemplate(Battery):
 
     def read_serial_data_template(self, command):
         # use the read_serial_data() function to read the data and then do BMS spesific checks (crc, start bytes, etc)
-        data = read_serial_data(command, self.port, self.baud_rate, self.LENGTH_POS, self.LENGTH_CHECK)
+        data = read_serial_data(
+            command,
+            self.port,
+            self.baud_rate,
+            self.LENGTH_POS,
+            self.LENGTH_CHECK,
+            battery_online=self.online,
+        )
         if data is False:
-            logger.error(">>> ERROR: No reply - returning")
             return False
 
         start, flag, command_ret, length = unpack_from("BBBB", data)

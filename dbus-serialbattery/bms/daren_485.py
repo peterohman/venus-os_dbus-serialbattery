@@ -8,7 +8,7 @@
 
 # avoid importing wildcards, remove unused imports
 from battery import Battery, Cell
-from utils import open_serial_port, logger
+from utils import open_serial_port, get_connection_error_message, logger
 from time import sleep
 from struct import unpack
 from re import findall
@@ -99,7 +99,7 @@ class Daren485(Battery):
 
         if not result:  # TROUBLESHOOTING for no reply errors
             logger.debug(f"get_settings: result: {result}." + " If you don't see this warning very often, you can ignore it.")
-            logger.error(">>> ERROR: No reply - returning")
+            get_connection_error_message(self.online)
 
         return result
 

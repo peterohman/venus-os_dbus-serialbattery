@@ -9,7 +9,7 @@ from datetime import datetime
 from pprint import pformat
 from struct import pack
 from time import sleep
-from utils import logger, MIN_CELL_VOLTAGE, MAX_CELL_VOLTAGE
+from utils import get_connection_error_message, logger, MIN_CELL_VOLTAGE, MAX_CELL_VOLTAGE
 import serial
 import sys
 
@@ -613,7 +613,8 @@ class EG4_LL(Battery):
                                 logger.error(f"No Reply - BMS ID: {bmsId} Command: {commandString} - Attempt: {attemptCount}")
                                 return False
                             elif cmdId == "69":
-                                logger.error(f"No Reply - BMS ID: {bmsId} Command: {commandString}")
+                                get_connection_error_message(self.online)
+                                logger.debug(f"No Reply - BMS ID: {bmsId} Command: {commandString}")
                                 return False
                             elif cmdId != "00":
                                 return False

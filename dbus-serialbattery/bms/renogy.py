@@ -240,6 +240,7 @@ class Renogy(Battery):
             self.baud_rate,
             self.LENGTH_POS,
             self.LENGTH_CHECK,
+            battery_online=self.online,
         )
         if data is False:
             return False

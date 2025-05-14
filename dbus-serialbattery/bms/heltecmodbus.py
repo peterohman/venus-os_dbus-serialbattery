@@ -8,7 +8,7 @@
 
 
 from battery import Battery, Cell
-from utils import logger
+from utils import get_connection_error_message, logger
 import serial
 import time
 import ext.minimalmodbus as minimalmodbus
@@ -77,7 +77,7 @@ class HeltecModbus(Battery):
 
         # give the user a feedback that no BMS was found
         if not found:
-            logger.error(">>> ERROR: No reply - returning")
+            get_connection_error_message(self.online)
 
         return found and self.read_status_data() and self.get_settings() and self.refresh_data()
 

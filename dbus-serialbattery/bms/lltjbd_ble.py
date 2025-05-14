@@ -13,7 +13,7 @@ import re
 from asyncio import CancelledError
 from time import sleep
 from typing import Union, Optional
-from utils import logger, BLUETOOTH_FORCE_RESET_BLE_STACK
+from utils import get_connection_error_message, logger, BLUETOOTH_FORCE_RESET_BLE_STACK
 from utils_ble import restart_ble_hardware_and_bluez_driver
 from bleak import BleakClient, BleakScanner, BLEDevice
 from bleak.exc import BleakDBusError
@@ -219,7 +219,7 @@ class LltJbd_Ble(LltJbd):
                 result = await asyncio.wait_for(asyncio.wrap_future(bt_task), 20)
                 return result
             except asyncio.TimeoutError:
-                logger.error(">>> ERROR: No reply - returning")
+                get_connection_error_message(self.online)
                 return False
             except BleakDBusError:
                 exception_type, exception_object, exception_traceback = sys.exc_info()
@@ -249,7 +249,7 @@ class LltJbd_Ble(LltJbd):
             logger.error(e)
             return False
         # except Exception as e:
-        #     logger.error(">>> ERROR: No reply - returning")
+        #     get_connection_error_message(self.online)
         #     logger.error(e)
         #     return False
         except Exception:

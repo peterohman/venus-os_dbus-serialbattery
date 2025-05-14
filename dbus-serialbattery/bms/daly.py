@@ -6,6 +6,7 @@
 from battery import Battery, Cell
 from utils import (
     bytearray_to_string,
+    get_connection_error_message,
     open_serial_port,
     logger,
     AUTO_RESET_SOC,
@@ -102,7 +103,7 @@ class Daly(Battery):
 
         # give the user a feedback that no BMS was found
         if not result:
-            logger.error(">>> ERROR: No reply - returning")
+            get_connection_error_message(self.online)
 
         return result
 
@@ -719,7 +720,11 @@ class Daly(Battery):
         """
         time_start = time()
 
-        reply = ser.read_until(b"\xa5")
+        try:
+            reply = ser.read_until(b"\xa5")
+        except Exception:
+            return False
+
         if not reply or b"\xa5" not in reply:
             logger.debug(f"read_sentence {bytearray_to_string(expected_reply)}: no sentence start received")
             return False
