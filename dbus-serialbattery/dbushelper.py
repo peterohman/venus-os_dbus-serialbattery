@@ -773,6 +773,9 @@ class DbusHelper:
 
         :param loop: The main loop of the driver.
         """
+        RETRY_CYCLE_SHORT_COUNT = 10
+        RETRY_CYCLE_LONG_COUNT = 60
+
         try:
             # Call the battery's refresh_data function
             result = self.battery.refresh_data()
@@ -791,12 +794,15 @@ class DbusHelper:
                     logger.info("External current sensor was connected, switching to external sensor")
                     self.battery.setup_external_sensor()
 
-            # Calculate the values for the battery
-            self.battery.set_calculated_data()
-
             if result:
-                # reset error variables
-                self.error["count"] = 0
+                # check if battery has been reconnected
+                if self.battery.online is False and self.error["count"] >= RETRY_CYCLE_SHORT_COUNT:
+                    logger.info(">>> Battery reconnected <<<")
+
+                # reset error count, if last error was more than 60 seconds ago
+                if self.error["count"] > 0 and self.error["timestamp_last"] < int(time()) - 60:
+                    self.error["count"] = 0
+
                 self.battery.online = True
                 self.battery.connection_info = "Connected"
 
@@ -808,94 +814,110 @@ class DbusHelper:
                 if self.cell_voltages_good is not None:
                     self.cell_voltages_good = None
 
+                # Calculate the values for the battery
+                self.battery.set_calculated_data()
+
+                # This is to manage CVCL
+                self.battery.manage_charge_voltage()
+
+                # This is to manage CCL\DCL
+                self.battery.manage_charge_and_discharge_current()
+
+                # Manage battery error code reset
+                # Check if the error code should be reset every hour
+                if self.battery.error_code_last_reset_check < int(time()) - 3600:
+                    # Check if the error code should be reset
+                    self.battery.manage_error_code_reset()
+                    # Update the last check time
+                    self.battery.error_code_last_reset_check = int(time())
+
+                # Manage battery state, if not set to error (10)
+                # change state from initializing to running, if there is no error
+                if self.battery.state == 0:
+                    self.battery.state = 9
+
+                # change state from running to standby, if charging and discharging is not allowed
+                if self.battery.state == 9 and not self.battery.get_allow_to_charge() and not self.battery.get_allow_to_discharge():
+                    self.battery.state = 14
+
+                # change state from standby to running, if charging or discharging is allowed
+                if self.battery.state == 14 and (self.battery.get_allow_to_charge() or self.battery.get_allow_to_discharge()):
+                    self.battery.state = 9
+
             else:
                 # update error variables
                 if self.error["count"] == 0:
                     self.error["timestamp_first"] = int(time())
 
-                self.error["timestamp_last"] = int(time())
                 self.error["count"] += 1
+                self.error["timestamp_last"] = int(time())
 
-                time_since_first_error = self.error["timestamp_last"] - self.error["timestamp_first"]
+                # show errors only if there are more than 1
+                if self.error["count"] > 1:
+                    time_since_first_error = self.error["timestamp_last"] - self.error["timestamp_first"]
 
-                # if the battery did not update in 10 second, it's assumed to be offline
-                if time_since_first_error >= 10:
+                    # if the battery did not update in 10 second, it's assumed to be offline
+                    if time_since_first_error >= RETRY_CYCLE_SHORT_COUNT:
 
-                    if self.battery.online:
-                        # set battery offline
-                        self.battery.online = False
+                        if self.battery.online:
+                            # set battery offline
+                            self.battery.online = False
 
-                        # reset the battery values
-                        logger.error(">>> ERROR: Battery does not respond, init/reset values <<<")
+                            # reset the battery values
+                            logger.error(">>> ERROR: Battery does not respond, init/reset values <<<")
 
-                        # check if the cell voltages are good to go for some minutes
-                        if self.cell_voltages_good is None:
-                            self.cell_voltages_good = (
-                                True
-                                if self.battery.get_min_cell_voltage() > utils.BLOCK_ON_DISCONNECT_VOLTAGE_MIN
-                                and self.battery.get_max_cell_voltage() < utils.BLOCK_ON_DISCONNECT_VOLTAGE_MAX
-                                else False
-                            )
-                            logger.error(
-                                "    |- Cell voltages are"
-                                + ("" if self.cell_voltages_good else " NOT")
-                                + " in a safe threshold to proceed with charging/discharging without communication to the battery"
-                                + " - "
-                                + f"min: {self.battery.get_min_cell_voltage()} > {utils.BLOCK_ON_DISCONNECT_VOLTAGE_MIN}"
-                                + " - "
-                                + f"max: {self.battery.get_max_cell_voltage()} < {utils.BLOCK_ON_DISCONNECT_VOLTAGE_MAX}"
-                            )
-                            logger.error(
-                                "    |- Trying further for " + f"{(60 * utils.BLOCK_ON_DISCONNECT_TIMEOUT_MINUTES if self.cell_voltages_good else 60):.0f} s"
-                            )
+                            # check if the cell voltages are good to go for some minutes
+                            if self.cell_voltages_good is None:
+                                self.cell_voltages_good = (
+                                    True
+                                    if self.battery.get_min_cell_voltage() > utils.BLOCK_ON_DISCONNECT_VOLTAGE_MIN
+                                    and self.battery.get_max_cell_voltage() < utils.BLOCK_ON_DISCONNECT_VOLTAGE_MAX
+                                    else False
+                                )
+                                logger.error(
+                                    "    |- Cell voltages are"
+                                    + ("" if self.cell_voltages_good else " NOT")
+                                    + " in a safe threshold to proceed with charging/discharging without communication to the battery."
+                                )
+                                logger.error(
+                                    "    |- "
+                                    + f"Min cell voltage: {self.battery.get_min_cell_voltage():.3f} > "
+                                    + f"Min Threshold: {utils.BLOCK_ON_DISCONNECT_VOLTAGE_MIN:.3f} --> "
+                                    + ("OK" if self.battery.get_min_cell_voltage() > utils.BLOCK_ON_DISCONNECT_VOLTAGE_MIN else "NOT OK")
+                                )
+                                logger.error(
+                                    "    |- "
+                                    + f"Max cell voltage: {self.battery.get_max_cell_voltage():.3f} < "
+                                    + f"Max threshold: {utils.BLOCK_ON_DISCONNECT_VOLTAGE_MAX:.3f} --> "
+                                    + ("OK" if self.battery.get_max_cell_voltage() < utils.BLOCK_ON_DISCONNECT_VOLTAGE_MAX else "NOT OK")
+                                )
+                                logger.error(
+                                    "    |- Trying further for "
+                                    + f"{(60 * utils.BLOCK_ON_DISCONNECT_TIMEOUT_MINUTES if self.cell_voltages_good else 60):.0f} s, then restart the driver"
+                                )
 
-                        self.battery.init_values()
+                            self.battery.init_values()
 
-                        # block charge/discharge
-                        if utils.BLOCK_ON_DISCONNECT:
-                            self.battery.block_because_disconnect = True
+                            # block charge/discharge
+                            if utils.BLOCK_ON_DISCONNECT:
+                                self.battery.block_because_disconnect = True
 
-                # set connection info
-                self.battery.connection_info = (
-                    f"Connection lost since {time_since_first_error} s, "
-                    + "disconnect at "
-                    + f"{(60 * utils.BLOCK_ON_DISCONNECT_TIMEOUT_MINUTES if self.cell_voltages_good else 60):.0f} s"
-                )
+                    # set connection info
+                    self.battery.connection_info = (
+                        f"Connection lost since {time_since_first_error} s, "
+                        + "disconnect at "
+                        + f"{(60 * utils.BLOCK_ON_DISCONNECT_TIMEOUT_MINUTES if self.cell_voltages_good else 60):.0f} s"
+                    )
 
-                # if the battery did not update in 60 second, it's assumed to be completely failed
-                if time_since_first_error >= 60 and (utils.BLOCK_ON_DISCONNECT or not self.cell_voltages_good):
-                    loop.quit()
+                    # if the battery did not update in 60 second, it's assumed to be completely failed
+                    if time_since_first_error >= RETRY_CYCLE_LONG_COUNT and (utils.BLOCK_ON_DISCONNECT or not self.cell_voltages_good):
+                        logger.error(f">>> Battery did not recover in {time_since_first_error} s. Restarting driver...")
+                        loop.quit()
 
-                # if the cells are between 3.2 and 3.3 volt we can continue for some time
-                if time_since_first_error >= 60 * utils.BLOCK_ON_DISCONNECT_TIMEOUT_MINUTES and not utils.BLOCK_ON_DISCONNECT:
-                    loop.quit()
-
-            # This is to manage CVCL
-            self.battery.manage_charge_voltage()
-
-            # This is to manage CCL\DCL
-            self.battery.manage_charge_and_discharge_current()
-
-            # Manage battery error code reset
-            # Check if the error code should be reset every hour
-            if self.battery.error_code_last_reset_check < int(time()) - 3600:
-                # Check if the error code should be reset
-                self.battery.manage_error_code_reset()
-                # Update the last check time
-                self.battery.error_code_last_reset_check = int(time())
-
-            # Manage battery state, if not set to error (10)
-            # change state from initializing to running, if there is no error
-            if self.battery.state == 0:
-                self.battery.state = 9
-
-            # change state from running to standby, if charging and discharging is not allowed
-            if self.battery.state == 9 and not self.battery.get_allow_to_charge() and not self.battery.get_allow_to_discharge():
-                self.battery.state = 14
-
-            # change state from standby to running, if charging or discharging is allowed
-            if self.battery.state == 14 and (self.battery.get_allow_to_charge() or self.battery.get_allow_to_discharge()):
-                self.battery.state = 9
+                    # if the cells are between 3.2 and 3.3 volt we can continue for some time
+                    if time_since_first_error >= RETRY_CYCLE_LONG_COUNT * utils.BLOCK_ON_DISCONNECT_TIMEOUT_MINUTES and not utils.BLOCK_ON_DISCONNECT:
+                        logger.error(f">>> Battery did not recover in {time_since_first_error} s. Restarting driver...")
+                        loop.quit()
 
             # publish all the data from the battery object to dbus
             self.publish_dbus()
