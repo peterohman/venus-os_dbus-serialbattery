@@ -826,26 +826,34 @@ class DbusHelper:
                         self.battery.online = False
 
                         # reset the battery values
-                        self.battery.init_values()
                         logger.error(">>> ERROR: Battery does not respond, init/reset values <<<")
+
+                        # check if the cell voltages are good to go for some minutes
+                        if self.cell_voltages_good is None:
+                            self.cell_voltages_good = (
+                                True
+                                if self.battery.get_min_cell_voltage() > utils.BLOCK_ON_DISCONNECT_VOLTAGE_MIN
+                                and self.battery.get_max_cell_voltage() < utils.BLOCK_ON_DISCONNECT_VOLTAGE_MAX
+                                else False
+                            )
+                            logger.error(
+                                "    |- Cell voltages are"
+                                + ("" if self.cell_voltages_good else " NOT")
+                                + " in a safe threshold to proceed with charging/discharging without communication to the battery"
+                                + " - "
+                                + f"min: {self.battery.get_min_cell_voltage()} > {utils.BLOCK_ON_DISCONNECT_VOLTAGE_MIN}"
+                                + " - "
+                                + f"max: {self.battery.get_max_cell_voltage()} < {utils.BLOCK_ON_DISCONNECT_VOLTAGE_MAX}"
+                            )
+                            logger.error(
+                                "    |- Trying further for " + f"{(60 * utils.BLOCK_ON_DISCONNECT_TIMEOUT_MINUTES if self.cell_voltages_good else 60):.0f} s"
+                            )
+
+                        self.battery.init_values()
 
                         # block charge/discharge
                         if utils.BLOCK_ON_DISCONNECT:
                             self.battery.block_because_disconnect = True
-
-                # check if the cell voltages are good to go for some minutes
-                if self.cell_voltages_good is None:
-                    self.cell_voltages_good = (
-                        True
-                        if self.battery.get_min_cell_voltage() > utils.BLOCK_ON_DISCONNECT_VOLTAGE_MIN
-                        and self.battery.get_max_cell_voltage() < utils.BLOCK_ON_DISCONNECT_VOLTAGE_MAX
-                        else False
-                    )
-                    logger.info(
-                        f"cell_voltages_good: {self.cell_voltages_good} - "
-                        + f"min: {self.battery.get_min_cell_voltage()} > {utils.BLOCK_ON_DISCONNECT_VOLTAGE_MIN} - "
-                        + f"max: {self.battery.get_max_cell_voltage()} < {utils.BLOCK_ON_DISCONNECT_VOLTAGE_MAX}"
-                    )
 
                 # set connection info
                 self.battery.connection_info = (

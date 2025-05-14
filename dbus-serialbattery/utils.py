@@ -14,7 +14,7 @@ import serial
 
 
 # CONSTANTS
-DRIVER_VERSION: str = "2.0.20250513dev"
+DRIVER_VERSION: str = "2.0.20250514dev"
 """
 current version of the driver
 """
@@ -803,6 +803,18 @@ def read_serial_data(
         file = exception_traceback.tb_frame.f_code.co_filename
         line = exception_traceback.tb_lineno
         logger.error(f"Exception occurred: {repr(exception_object)} of type {exception_type} in {file} line #{line}")
+
+
+def safe_number_format(value: float, fmt: str = "{:.2f}", default=None) -> str:
+    """
+    Format a value safely, returning a default value if the value is None.
+
+    :param value: Value to format
+    :param fmt: Format string (default: "{:.2f}")
+    :param default: Default value to return if value is None
+    :return: Formatted value or default value
+    """
+    return fmt.format(value) if value is not None else default
 
 
 def validate_config_values() -> bool:
