@@ -63,6 +63,7 @@ if "Sinowealth" in BMS_TYPE:
 supported_bms_types = [
     {"bms": Daly, "baud": 9600, "address": b"\x40"},
     {"bms": Daly, "baud": 9600, "address": b"\x80"},
+    {"bms": Daren485, "baud": 9600, "address": b"\x01"},
     {"bms": Daren485, "baud": 19200, "address": b"\x01"},
     {"bms": Ecs, "baud": 19200},
     {"bms": EG4_Lifepower, "baud": 9600, "address": b"\x01"},
@@ -214,7 +215,10 @@ def main():
                         _bms_address = None
 
                     logger.info(
-                        "  Testing " + test["bms"].__name__ + (' at address "' + bytearray_to_string(_bms_address) + '"' if _bms_address is not None else "")
+                        "  Testing "
+                        + test["bms"].__name__
+                        + (' at address "' + bytearray_to_string(_bms_address) + '"' if _bms_address is not None else "")
+                        + (" with " + str(test["baud"]) + " baud" if "baud" in test else "")
                     )
                     batteryClass = test["bms"]
                     baud = test["baud"] if "baud" in test else None
