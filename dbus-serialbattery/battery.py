@@ -338,6 +338,7 @@ class Battery(ABC):
         self.temperature_mos: float = None
         self.cells: List[Cell] = []
         self.control_voltage: float = None
+        self.control_voltage_last_limit_time: int = None
         self.soc_reset_requested: bool = False
         self.soc_reset_last_reached: int = 0  # save state to preserve on restart
         self.soc_reset_battery_voltage: int = None
@@ -667,8 +668,11 @@ class Battery(ABC):
         :return: None
         """
         time_diff = 0
-        control_voltage = 0
+        control_voltage = self.max_battery_voltage
         current_time = int(time())
+        # How fast the voltage should be increased/decreased per second
+        # Used in cell over voltage protection and float transition
+        VOLTAGE_STEP_PER_SECOND = 0.001
 
         if utils.CVL_CONTROLLER_MODE == 1:
             penalty_sum = 0
@@ -810,21 +814,49 @@ class Battery(ABC):
                 else:
                     control_voltage = self.max_battery_voltage
 
-                # set control voltage
-                # 6 decimals are needed for a proper controller working
-                # https://github.com/Louisvdw/dbus-serialbattery/issues/1041
-                self.control_voltage = round(control_voltage, 6)
-
                 self.charge_mode = "Bulk" if self.max_voltage_start_time is None else "Absorption"
 
-                # If control voltage is not equal to max battery voltage, then a high cell voltage was detected
-                if control_voltage != self.max_battery_voltage:
+                # Recover slowly the voltage, if needed
+                # Set control voltage immediately, if not reduced by the controller
+                if control_voltage >= self.max_battery_voltage and self.control_voltage_last_limit_time is None:
+                    self.control_voltage = round(self.max_battery_voltage, 6)
+
+                # Set control voltage immediately, if control voltage is lower then previous control voltage
+                # or if it remains the same
+                elif self.control_voltage is None or control_voltage <= self.control_voltage:
+                    self.control_voltage_last_limit_time = current_time
+                    self.control_voltage = round(control_voltage, 6)
                     self.charge_mode += " (Cell OVP)"  # Cell over voltage protection
+
+                # Slowly recover
+                else:
+                    # If control voltage was not set before, set it now
+                    if self.control_voltage_last_limit_time is None:
+                        self.control_voltage_last_limit_time = current_time
+
+                    seconds_since_limit = current_time - self.control_voltage_last_limit_time
+                    # Calculate the allowed recovery voltage
+                    if seconds_since_limit < 60:
+                        allowed_voltage = self.control_voltage  # hold voltage steady
+                        self.charge_mode += " (Cell OVP)"  # Cell over voltage protection
+                    else:
+                        allowed_voltage = min(
+                            self.control_voltage + VOLTAGE_STEP_PER_SECOND * (seconds_since_limit - 60),
+                            self.max_battery_voltage,
+                        )
+                        self.charge_mode += " (Cell OVP*)"  # Cell over voltage protection
+
+                    # If control voltage is the same as max battery voltage, reset control_voltage_last_limit_time
+                    if allowed_voltage == self.max_battery_voltage:
+                        self.control_voltage_last_limit_time is None
+
+                    self.control_voltage = round(allowed_voltage, 6)
 
                 if self.max_battery_voltage == self.soc_reset_battery_voltage:
                     self.charge_mode += " & SoC Reset"
 
-                if self.get_balancing() and voltage_cell_diff >= utils.SWITCH_TO_BULK_CELL_VOLTAGE_DIFF:
+                # if self.get_balancing() and voltage_cell_diff >= utils.SWITCH_TO_BULK_CELL_VOLTAGE_DIFF:
+                if self.get_balancing():
                     self.charge_mode += " + Balancing"
 
             # Float mode
@@ -860,9 +892,8 @@ class Battery(ABC):
                     elif self.charge_mode.startswith("Float Transition"):
                         elapsed_time = current_time - self.transition_start_time
                         # Voltage reduction per second
-                        VOLTAGE_REDUCTION_PER_SECOND = 0.01 / 10
                         voltage_reduction = min(
-                            VOLTAGE_REDUCTION_PER_SECOND * elapsed_time,
+                            VOLTAGE_STEP_PER_SECOND * elapsed_time,
                             self.initial_control_voltage - float_voltage,
                         )
                         self.control_voltage = self.initial_control_voltage - voltage_reduction
@@ -878,10 +909,11 @@ class Battery(ABC):
                 self.charge_mode = charge_mode
 
             if utils.CHARGE_MODE == 2:
-                self.charge_mode += ", Step Mode"
+                self.charge_mode += " │ Step Mode"
             else:
-                self.charge_mode += ", Linear Mode"
+                self.charge_mode += " │ Linear Mode"
 
+            """
             MAX_CHAR = 30
             # check if self.charge_mode is longer then MAX_CHAR characters and if yes add a line break
             if len(self.charge_mode) > MAX_CHAR:
@@ -891,6 +923,7 @@ class Battery(ABC):
                     # If no space found, fallback to MAX_CHAR
                     space_index = MAX_CHAR
                 self.charge_mode = self.charge_mode[:space_index] + "\n" + self.charge_mode[space_index + 1 :]
+            """
 
             # debug information
             if utils.GUI_PARAMETERS_SHOW_ADDITIONAL_INFO or logger.isEnabledFor(logging.DEBUG):
@@ -905,9 +938,12 @@ class Battery(ABC):
                     f"driver started: {formatted_time} • running since: {self.get_seconds_to_string(int(time()) - self.driver_start_time)}\n"
                     + f"max_battery_voltage: {safe_number_format(self.max_battery_voltage, '{:.2f}')} V • "
                     + f"voltage: {safe_number_format(self.voltage, '{:.2f}')} V\n"
-                    + f"control_voltage: {safe_number_format(self.control_voltage, '{:.2f}')} V + "
+                    + f"self.control_voltage: {safe_number_format(self.control_voltage, '{:.2f}')} V + "
                     + f"{safe_number_format(utils.VOLTAGE_DROP, '{:.2f}')} V (VOLTAGE_DROP) = "
                     + f"{safe_number_format((self.control_voltage + utils.VOLTAGE_DROP), '{:.2f}')} V\n"
+                    + f"control_voltage: {safe_number_format(control_voltage, '{:.2f}')} V • "
+                    + "seconds_since_limit: "
+                    + f"{current_time - self.control_voltage_last_limit_time if self.control_voltage_last_limit_time is not None else 0} s\n"
                     + f"voltage_sum: {safe_number_format(voltage_sum, '{:.2f}')} V • "
                     + f"voltage_cell_diff: {safe_number_format(voltage_cell_diff, '{:.3f}')} V\n"
                     + f"max_cell_voltage: {self.get_max_cell_voltage()} V"
