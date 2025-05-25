@@ -1016,31 +1016,6 @@ class Battery(ABC):
             line = exception_traceback.tb_lineno
             logger.error("Non blocking exception occurred: " + f"{repr(exception_object)} of type {exception_type} in {file} line #{line}")
 
-    def set_cvl_linear(self, control_voltage: float) -> bool:
-        """
-        Set CVL only once every `CVL_RECALCULATION_EVERY` seconds or if the CVL changes more than
-        `CVL_RECALCULATION_ON_MAX_PERCENTAGE_CHANGE` percent.
-
-        TODO: Seems to not be needed anymore. Will be removed in future.
-
-        :return: The status, if the CVL was set
-        """
-        current_time = int(time())
-        diff = abs(self.control_voltage - control_voltage) if self.control_voltage is not None else 0
-
-        if utils.CVL_RECALCULATION_EVERY <= current_time - self.linear_cvl_last_set or (
-            diff
-            >= self.control_voltage
-            * utils.CVL_RECALCULATION_ON_MAX_PERCENTAGE_CHANGE
-            / 100
-            / 10  # for more precision, since the changes are small in this case
-        ):
-            self.control_voltage = control_voltage
-            self.linear_cvl_last_set = current_time
-            return True
-
-        return False
-
     def manage_charge_and_discharge_current(self) -> None:
         """
         Manages the charge and discharge current by setting `self.control_charge_current`
