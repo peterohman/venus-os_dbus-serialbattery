@@ -673,6 +673,9 @@ class Battery(ABC):
         if utils.CVL_CONTROLLER_MODE == 1:
             penalty_sum = 0
 
+        if utils.CVL_CONTROLLER_MODE == 3:
+            clipped_coltage = 0
+
         try:
             voltage_sum = self.get_cell_voltage_sum()
             voltage_cell_diff = self.get_max_cell_voltage() - self.get_min_cell_voltage()
@@ -781,6 +784,28 @@ class Battery(ABC):
                         self.max_battery_voltage,
                     )
 
+                # use clipped sum controller
+                elif utils.CVL_CONTROLLER_MODE == 3:
+                    found_high_cell_voltage = False
+
+                    # check for cell overvoltage
+                    if self.get_max_cell_voltage() > cell_voltage_max_allowed:
+                        for i in range(self.cell_count):
+                            voltage = self.get_cell_voltage(i)
+                            if voltage:
+                                # calculate current voltage without overvoltage
+                                if voltage > cell_voltage_max_allowed:
+                                    found_high_cell_voltage = True
+                                    clipped_coltage += cell_voltage_max_allowed
+                                else:
+                                    clipped_coltage += voltage
+
+                    if found_high_cell_voltage:
+                        # add little voltage to keep charging
+                        control_voltage = clipped_coltage + 0.010
+                    else:
+                        control_voltage = self.max_battery_voltage
+
                 # use no controller
                 else:
                     control_voltage = self.max_battery_voltage
@@ -856,6 +881,16 @@ class Battery(ABC):
                 self.charge_mode += ", Step Mode"
             else:
                 self.charge_mode += ", Linear Mode"
+
+            MAX_CHAR = 30
+            # check if self.charge_mode is longer then MAX_CHAR characters and if yes add a line break
+            if len(self.charge_mode) > MAX_CHAR:
+                # Find the last space before or at position MAX_CHAR
+                space_index = self.charge_mode.rfind(" ", 0, MAX_CHAR)
+                if space_index == -1:
+                    # If no space found, fallback to MAX_CHAR
+                    space_index = MAX_CHAR
+                self.charge_mode = self.charge_mode[:space_index] + "\n" + self.charge_mode[space_index + 1 :]
 
             # debug information
             if utils.GUI_PARAMETERS_SHOW_ADDITIONAL_INFO or logger.isEnabledFor(logging.DEBUG):

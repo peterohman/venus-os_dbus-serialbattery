@@ -58,6 +58,7 @@
 * Added: BLE - Error message if BLE `BMS_TYPE` was misspelled by @mr-manuel
 * Added: BLE - Error message if BLE address is missing by @mr-manuel
 * Added: Calculation of history values not provided by the battery by @mr-manuel
+* Added: Charge Voltage Limit mode - Clipped sum controller by @mr-manuel
 * Added: Charge/Discharge current limitation by MOSFET temperature by @mr-manuel
 * Added: Daly CAN - Read capacity with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/217 from @atillack
 * Added: Error handling for `config.ini` by @mr-manuel
