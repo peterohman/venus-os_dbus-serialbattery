@@ -4,6 +4,7 @@ import os
 import requests
 import tarfile
 import shutil
+from time import sleep
 
 files = [
     # path: path where the file will be saved
@@ -167,6 +168,16 @@ if __name__ == "__main__":
 
     # remove the temporary directory
     print("Remove temporary directory")
-    shutil.rmtree(temp_dir)
+
+    for attempt in range(5):
+        try:
+            shutil.rmtree(temp_dir)
+            break
+        except PermissionError as e:
+            if attempt < 4:
+                print(f"PermissionError: {e}. Retrying in 1 second...")
+                sleep(1)
+            else:
+                print(f"Failed to remove {temp_dir} after 5 attempts: {e}")
 
     print()

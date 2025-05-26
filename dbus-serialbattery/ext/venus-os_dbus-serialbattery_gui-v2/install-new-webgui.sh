@@ -1,7 +1,13 @@
 #!/bin/bash
 
+if [ -d "/var/www/venus/gui-v2" ] && [ ! -L "/var/www/venus/gui-v2" ]; then
+    pathGuiWww="/var/www/venus/gui-v2"
+elif [ -d "/var/www/venus/gui-beta" ] && [ ! -L "/var/www/venus/gui-beta" ]; then
+    pathGuiWww="/var/www/venus/gui-beta"
+fi
+
 # check if at least 20 MB free space is available on the system partition
-freeSpace=$(df -m / | awk 'NR==2 {print $4}')
+freeSpace=$(df -m ${pathGuiWww} | awk 'NR==2 {print $4}')
 if [ $freeSpace -lt 20 ]; then
 
     # try to expand system partition
@@ -50,12 +56,6 @@ unzip -o /tmp/venus-webassembly.zip -d /tmp > /dev/null
 # remove unneeded files
 if [ -f "/tmp/wasm/Makefile" ]; then
     rm -f /tmp/wasm/Makefile
-fi
-
-if [ -d "/var/www/venus/gui-v2" ] && [ ! -L "/var/www/venus/gui-v2" ]; then
-    pathGuiWww="/var/www/venus/gui-v2"
-elif [ -d "/var/www/venus/gui-beta" ] && [ ! -L "/var/www/venus/gui-beta" ]; then
-    pathGuiWww="/var/www/venus/gui-beta"
 fi
 
 # "remove" old files
