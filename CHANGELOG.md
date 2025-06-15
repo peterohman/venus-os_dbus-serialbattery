@@ -137,6 +137,7 @@
 * Changed: The setting `TEMP_4_NAME` was replaced by `TEMPERATURE_4_NAME` in the `config.default.ini` by @mr-manuel
 * Changed: The setting `TEMP_BATTERY` was replaced by `TEMPERATURE_SOURCE_BATTERY` in the `config.default.ini` by @mr-manuel
 * Changed: The setting `TEMPERATURE_SOURCE_BATTERY` is now a list of temperature sensors, so you can choose which sensors you want to use by @mr-manuel
+* Changed: Tian Power BMS: Fixed command info request with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/274 by @Shahar-Ariel
 * Changed: Use corrected current for both normal current and SOC calculation if `SOC_CALCULATION` is enabled by @mr-manuel
 * Changed: When `SOC_CALCULATION` is enabled, the SoC is reset to 100%, if the battery switches to float. Old options were removed by @mr-manuel
 * Removed: BLE - Duplicated not found message by @mr-manuel
