@@ -104,6 +104,7 @@
 * Changed: Improved some error messages for better understanding by @mr-manuel
 * Changed: JKBMS BLE - Reworked code by @mr-manuel
 * Changed: JKBMS CAN - Per default only address 0 is recognized. Change `BATTERY_ADDRESS` to match your device address by @Hooorny and @mr-manuel
+* CHanged: JKBMS PB - Fixed incorrect offsets with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/283 by @gizmocuz
 * CHanged: JKBMS PB - Fixed serial number reading with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/270 by @marcelrv
 * Changed: Licensing from MIT license to GNU AGPLv3 license by @mr-manuel
 * Changed: LLT/JBD BLE - Fixed initial connection by @mr-manuel
