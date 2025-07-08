@@ -65,6 +65,7 @@
 * Added: Felicity BMS by @versager
 * Added: GUIv2 - New page where you see all important data in one place for easy troubleshooting by @mr-manuel
 * Added: JKBMS CAN - Extended protocol with version V2 by @Hooorny and @mr-manuel
+* Added: JKBMS PB - Status of balancer switch with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/286 by @KoljaWindeler
 * Added: Kilovault HLX+ BMS by @alexphredorg
 * Added: KS48100 (PAPool, Bemory, CERRNSS, VoltPolska, ...) BMS with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/168 by @JoshuaDodds
 * Added: LiTime BMS by @calledit
