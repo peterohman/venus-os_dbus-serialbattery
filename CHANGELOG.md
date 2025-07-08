@@ -90,6 +90,7 @@
 * Changed: Daly CAN - Driver improvements by @transistorgit
 * Changed: Daly CAN - Refactored driver to match new CAN standard by @mr-manuel and @transistorgit
 * Changed: Dependencies are now shipped with the driver and not downloaded anymore which allows a complete offline installation by @mr-manuel
+* Changed: Do not set `Allow to balance` to `False` if unavailable by @mr-manuel
 * Changed: Driver was moved from `/data/etc/dbus-serialbattery` to `/data/apps/dbus-serialbattery` by @mr-manuel
 * Changed: EG4 LifePower - Fixed wrong cell voltage decoding. Fixes https://github.com/mr-manuel/venus-os_dbus-serialbattery/issues/155 by @dchiquito
 * Changed: Fix `/Info/BatteryLowVoltage` remaining `None` https://github.com/mr-manuel/venus-os_dbus-serialbattery/issues/145 by @mr-manuel

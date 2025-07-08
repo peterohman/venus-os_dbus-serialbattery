@@ -987,7 +987,7 @@ class DbusHelper:
 
         self._dbusservice["/Io/AllowToCharge"] = 1 if self.battery.get_allow_to_charge() else 0
         self._dbusservice["/Io/AllowToDischarge"] = 1 if self.battery.get_allow_to_discharge() else 0
-        self._dbusservice["/Io/AllowToBalance"] = 1 if self.battery.get_allow_to_balance() else 0
+        self._dbusservice["/Io/AllowToBalance"] = 1 if self.battery.get_allow_to_balance() else 0 if self.battery.get_allow_to_balance() is not None else None
         self._dbusservice["/System/NrOfModulesBlockingCharge"] = 0 if self.battery.get_allow_to_charge() else 1
         self._dbusservice["/System/NrOfModulesBlockingDischarge"] = 0 if self.battery.get_allow_to_discharge() else 1
         self._dbusservice["/System/NrOfModulesOnline"] = 1 if self.battery.online else 0

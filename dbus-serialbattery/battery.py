@@ -1903,7 +1903,7 @@ class Battery(ABC):
         return True if self.discharge_fet and self.control_allow_discharge and self.block_because_disconnect is False else False
 
     def get_allow_to_balance(self) -> bool:
-        return True if self.balance_fet else False
+        return True if self.balance_fet else False if self.balance_fet is False else None
 
     def validate_data(self) -> bool:
         """
