@@ -6,6 +6,7 @@ function versionStringToNumber ()
 {
     local p4="" ; local p5="" ; local p5=""
     local major=""; local minor=""
+    local versionNumber
 
 	# first character should be 'v' so first awk parameter will be empty and is not prited into the read command
 	#
@@ -15,7 +16,7 @@ function versionStringToNumber ()
 	# if no beta make sure release is greater than any beta (i.e., a beta portion of 999)
 
     read major minor p4 p5 p6 <<< $(echo $1 | awk -v FS='[v.~-]' '{print $2, $3, $4, $5, $6}')
-	((versionNumber = major * 1000000000 + minor * 1000000))
+	((versionNumber = major * 1000 * 1000 * 1000 + minor * 1000 * 1000))
 	if [ -z $p4 ] || [ $p4 = "large" ]; then
         ((versionNumber += 999))
 	else
@@ -27,6 +28,8 @@ function versionStringToNumber ()
 	elif [ ! -z $p6 ]; then
 		((versionNumber += p6 * 1000))
 	fi
+
+    echo "$versionNumber"
 }
 
 

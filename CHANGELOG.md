@@ -113,6 +113,7 @@
 * CHanged: JKBMS PB - Fixed serial number reading with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/270 by @marcelrv
 * Changed: Licensing from MIT license to GNU AGPLv3 license by @mr-manuel
 * Changed: LLT/JBD BLE - Fixed initial connection by @mr-manuel
+* Changed: Rebuild custom GUI install process by @mr-manuel
 * Changed: Refactored driver installation via USB/SD card by @mr-manuel
 * Changed: Renamed `install-qml.sh` to `custom-gui-install.sh` by @mr-manuel
 * Changed: Renamed `reinstall-local.sh` to `enable.sh` by @mr-manuel

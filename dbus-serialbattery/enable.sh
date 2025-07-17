@@ -179,6 +179,7 @@ if ls /service/dbus-blebattery.* 1> /dev/null 2>&1; then
     # kill opened bluetoothctl processes
     pkill -f "^bluetoothctl "
 fi
+echo
 
 
 if [ "$bluetooth_length" -gt 0 ]; then
@@ -440,7 +441,6 @@ sed -i "/^sh \/data\/etc\/dbus-serialbattery\/installble.sh/d" /data/rc.local
 
 
 
-echo
 echo
 echo "#################################"
 echo "# First activation instructions #"
