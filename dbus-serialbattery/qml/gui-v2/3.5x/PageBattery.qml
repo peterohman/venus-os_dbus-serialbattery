@@ -116,25 +116,10 @@ Page {
 			ListQuantityGroup {
 				text: CommonWords.battery
 				textModel: [
-					{ value: batteryVoltage.value, unit: VenusOS.Units_Volt_DC },
-					{ value: batteryCurrent.value, unit: VenusOS.Units_Amp },
-					{ value: batteryPower.value, unit: VenusOS.Units_Watt }
+					{ value: root.battery.voltage, unit: VenusOS.Units_Volt_DC },
+					{ value: root.battery.current, unit: VenusOS.Units_Amp },
+					{ value: root.battery.power, unit: VenusOS.Units_Watt }
 				]
-
-				VeQuickItem {
-					id: batteryVoltage
-					uid: root.battery.serviceUid + "/Dc/0/Voltage"
-				}
-
-				VeQuickItem {
-					id: batteryCurrent
-					uid: root.battery.serviceUid + "/Dc/0/Current"
-				}
-
-				VeQuickItem {
-					id: batteryPower
-					uid: root.battery.serviceUid + "/Dc/0/Power"
-				}
 			}
 
 			ListQuantityItem {

@@ -762,7 +762,7 @@ Page {
 						topPadding: 0
 						bottomPadding: 0
 						color: Theme.color_font_secondary
-						text: chargeModeDebug.valid ? chargeModeDebug.value : "--"
+						text: chargeModeDebug.isValid ? chargeModeDebug.value : "--"
 						horizontalAlignment: Text.AlignHCenter
 					}
 				]
@@ -783,7 +783,7 @@ Page {
 						topPadding: 0
 						bottomPadding: 0
 						color: Theme.color_font_secondary
-						text: chargeModeDebugFloat.valid ? chargeModeDebugFloat.value : "--"
+						text: chargeModeDebugFloat.isValid ? chargeModeDebugFloat.value : "--"
 						horizontalAlignment: Text.AlignHCenter
 					}
 				]
@@ -804,7 +804,7 @@ Page {
 						topPadding: 0
 						bottomPadding: 0
 						color: Theme.color_font_secondary
-						text: chargeModeDebugBulk.valid ? chargeModeDebugBulk.value : "--"
+						text: chargeModeDebugBulk.isValid ? chargeModeDebugBulk.value : "--"
 						horizontalAlignment: Text.AlignHCenter
 					}
 				]

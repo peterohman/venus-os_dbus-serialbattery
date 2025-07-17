@@ -153,7 +153,10 @@ Page {
 						property int outerIndex: model.index
 
 						text: "Cells %1-%2".arg(model.index * 4 + 1).arg(model.index * 4 + 4)
-						preferredVisible: firstRowCellVoltage.valid
+						preferredVisible: firstColumnCellVoltage.valid ||
+							secondColumnCellVoltage.valid ||
+							thirdColumnCellVoltage.valid ||
+							fourthColumnCellVoltage.valid
 						content.children: [
 							Row {
 								id: contentRow
@@ -194,8 +197,23 @@ Page {
 								}
 
 								VeQuickItem {
-									id: firstRowCellVoltage
+									id: firstColumnCellVoltage
 									uid: root.bindPrefix + "/Voltages/Cell%1".arg(outerIndex * 4 + 1)
+								}
+
+								VeQuickItem {
+									id: secondColumnCellVoltage
+									uid: root.bindPrefix + "/Voltages/Cell%1".arg(outerIndex * 4 + 2)
+								}
+
+								VeQuickItem {
+									id: thirdColumnCellVoltage
+									uid: root.bindPrefix + "/Voltages/Cell%1".arg(outerIndex * 4 + 3)
+								}
+
+								VeQuickItem {
+									id: fourthColumnCellVoltage
+									uid: root.bindPrefix + "/Voltages/Cell%1".arg(outerIndex * 4 + 4)
 								}
 							}
 						]
