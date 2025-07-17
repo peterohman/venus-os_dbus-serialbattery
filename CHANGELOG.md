@@ -77,6 +77,7 @@
 * Added: RV-C House Battery by @rogergrant99
 * Added: Show BMS cable fault warning, if the BMS is not reachable anymore by @mr-manuel
 * Added: Show CVL also on cell voltage base by @mr-manuel
+* Added: Show if deprecated or invalid config options are used in the config.ini by @mr-manuel
 * Added: Signal handler for clean service restart/shutdown by @mr-manuel
 * Added: UBMS CAN - support for Valence U-BMS by @gimx
 * Added: Venus OS image type to startup log by @mr-manuel

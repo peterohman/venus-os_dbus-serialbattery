@@ -14,7 +14,7 @@ import serial
 
 
 # CONSTANTS
-DRIVER_VERSION: str = "2.0.20250525dev"
+DRIVER_VERSION: str = "2.0.20250717dev"
 """
 current version of the driver
 """
@@ -73,6 +73,27 @@ logger.setLevel(LOGGING_LEVELS.get(config["DEFAULT"].get("LOGGING").upper()))
 # This is needed else the errors are not instantly visible
 errors_in_config = []
 
+# Check if there are any options in the custom config file that are not in the default config file
+default_config = configparser.ConfigParser()
+custom_config = configparser.ConfigParser()
+# Ensure that option names are treated as case-sensitive
+default_config.optionxform = str
+custom_config.optionxform = str
+# Read the default and custom config files
+default_config.read(default_config_file_path)
+custom_config.read(custom_config_file_path)
+
+for section in custom_config.sections() + ["DEFAULT"]:
+    if section not in default_config.sections() + ["DEFAULT"]:
+        errors_in_config.append(f'Section "{section}" in config.ini is not valid.')
+    else:
+        for option in custom_config[section]:
+            if option not in default_config[section]:
+                errors_in_config.append(f'Option "{option}" in config.ini is not valid.')
+
+# Free up memory
+del default_config, custom_config, section, option
+
 
 # --------- Helper Functions ---------
 def get_bool_from_config(group: str, option: str) -> bool:
@@ -100,7 +121,7 @@ def get_float_from_config(group: str, option: str, default_value: float = 0) -> 
     try:
         return float(value)
     except ValueError:
-        errors_in_config.append(f"**CONFIG ISSUE**: Invalid value '{value}' for option '{option}' in group '{group}'.")
+        errors_in_config.append(f"Invalid value '{value}' for option '{option}' in group '{group}'.")
         return default_value
 
 
@@ -118,7 +139,7 @@ def get_int_from_config(group: str, option: str, default_value: int = 0) -> int:
     try:
         return int(value)
     except ValueError:
-        errors_in_config.append(f"**CONFIG ISSUE**: Invalid value '{value}' for option '{option}' in group '{group}'.")
+        errors_in_config.append(f"Invalid value '{value}' for option '{option}' in group '{group}'.")
         return default_value
 
 
@@ -136,10 +157,10 @@ def get_list_from_config(group: str, option: str, mapper: Callable[[Any], Any] =
         return [mapper(item.strip()) for item in raw_list if item.strip()]
     except KeyError:
         logger.error(f"Missing config option '{option}' in group '{group}'")
-        errors_in_config.append(f"**CONFIG ISSUE**: Missing config option '{option}' in group '{group}'")
+        errors_in_config.append(f"Missing config option '{option}' in group '{group}'")
         return []
     except ValueError:
-        errors_in_config.append(f"**CONFIG ISSUE**: Invalid value '{mapper}' for option '{option}' in group '{group}'.")
+        errors_in_config.append(f"Invalid value '{mapper}' for option '{option}' in group '{group}'.")
         return []
 
 
@@ -151,7 +172,7 @@ def check_config_issue(condition: bool, message: str):
     :param message: The message to append if the condition is True
     """
     if condition:
-        errors_in_config.append(f"**CONFIG ISSUE**: {message}")
+        errors_in_config.append(f"{message}")
 
 
 # SAVE CONFIG VALUES to constants
@@ -847,12 +868,23 @@ def validate_config_values() -> bool:
 
     :return: True if there are no errors else False
     """
+    # Add empty line for better readability
+    if len(errors_in_config) > 0:
+        logger.error("")
+        logger.error("*** CONFIG ISSUES DETECTED ***")
+
     # loop through all errors and log them
     for error in errors_in_config:
-        logger.error(error)
+        logger.error("- " + error)
 
     # return True if there are no errors
-    return len(errors_in_config) == 0
+    if len(errors_in_config) == 0:
+        return True
+    else:
+        logger.error("The driver may not behave as expected due to the above issues.")
+        logger.error(">>> Please check the CHANGELOG.md for option changes and the config.default.ini for all available options!")
+        logger.error("")
+        return False
 
 
 def publish_config_variables(dbusservice) -> None:
