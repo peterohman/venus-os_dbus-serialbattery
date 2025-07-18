@@ -199,20 +199,30 @@ fi
 ## stable release (mr-manuel, most up to date)
 if [ "$version" = "stable" ]; then
     # download stable release
-    curl -s https://api.github.com/repos/mr-manuel/venus-os_dbus-serialbattery/releases/latest | sed -nE 's/.*"browser_download_url": "([^"]+)".*/\1/p' | wget -O /tmp/venus-data.tar.gz -qi -
+    echo "Downloading stable release from mr-manuel's repo..."
+    echo ""
+    curl -s https://api.github.com/repos/mr-manuel/venus-os_dbus-serialbattery/releases/latest | sed -nE 's/.*"browser_download_url": "([^"]+)".*/\1/p' | wget -O /tmp/venus-data.tar.gz -i -
+    echo ""
 fi
 
 ## beta release (mr-manuel, most up to date)
 if [ "$version" = "beta" ]; then
     # download beta release
-    curl -s https://api.github.com/repos/mr-manuel/venus-os_dbus-serialbattery/releases/tags/$latest_release_mrmanuel_beta | sed -nE 's/.*"browser_download_url": "([^"]+)".*/\1/p' | wget -O /tmp/venus-data.tar.gz -qi -
+    echo "Downloading beta release from mr-manuel's repo..."
+    echo ""
+    curl -s https://api.github.com/repos/mr-manuel/venus-os_dbus-serialbattery/releases/tags/$latest_release_mrmanuel_beta | sed -nE 's/.*"browser_download_url": "([^"]+)".*/\1/p' | wget -O /tmp/venus-data.tar.gz -i -
+    echo ""
 fi
 
 ## specific version
 if [ "$version" = "specific_version" ]; then
     # read the url
     read -r -p "Enter the url of the \"venus-data.tar.gz\" you want to install: " tar_url
+    echo ""
+    echo "Downloading specific version from $tar_url..."
+    echo ""
     wget -O /tmp/venus-data.tar.gz "$tar_url"
+    echo ""
     if [ $? -ne 0 ]; then
         echo "ERROR: Error during downloading the TAR file. Please check, if the URL is correct."
         exit 1
@@ -333,7 +343,10 @@ if [ "$version" = "nightly" ] || [ "$version" = "specific_branch" ]; then
     fi
 
     # download driver
+    echo "Downloading branch \"$branch\" from mr-manuel's repo..."
+    echo ""
     wget -O /tmp/$branch.zip https://github.com/mr-manuel/venus-os_dbus-serialbattery/archive/refs/heads/$branch.zip
+    echo ""
 
     # check if the download was successful
     if [ $? -ne 0 ]; then
