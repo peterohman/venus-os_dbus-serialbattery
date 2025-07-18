@@ -4,21 +4,16 @@
 #set -x
 
 
-# check if minimum required Venus OS is installed | start
-versionRequired="v2.90"
-
 # import functions
 source /data/apps/dbus-serialbattery/functions.sh
 
+# check if minimum required Venus OS is installed | start
+versionRequired=$(versionStringToNumber "v2.90")
 
 # get current Venus OS version
-versionStringToNumber "$(head -n 1 /opt/victronenergy/version)"
-venusVersionNumber="$versionNumber"
+venusVersionNumber=$(versionStringToNumber "$(head -n 1 /opt/victronenergy/version)")
 
-# minimum required version to install the driver
-versionStringToNumber "$versionRequired"
-
-if (( $venusVersionNumber < $versionNumber )); then
+if (( $venusVersionNumber < $versionRequired )); then
     echo
     echo
     echo "Minimum required Venus OS version \"$versionRequired\" not met. Currently version \"$(head -n 1 /opt/victronenergy/version)\" is installed."
@@ -431,12 +426,9 @@ fi
 ### needed for upgrading from older versions | start ###
 # remove old drivers before changing from dbus-blebattery-$1 to dbus-blebattery.$1
 rm -rf /service/dbus-blebattery-*
-# remove old install script from rc.local
-sed -i "/^sh \/data\/etc\/dbus-serialbattery\/reinstalllocal.sh/d" /data/rc.local
-sed -i "/^sh \/data\/etc\/dbus-serialbattery\/reinstall-local.sh/d" /data/rc.local
-sed -i "/^bash \/data\/etc\/dbus-serialbattery\/reinstall-local.sh/d" /data/rc.local
-# remove old entry from rc.local
-sed -i "/^sh \/data\/etc\/dbus-serialbattery\/installble.sh/d" /data/rc.local
+# remove old install scripts from rc.local
+sed -i '/^sh \/data\/etc\/dbus-serialbattery\//d' /data/rc.local
+sed -i "/^bash \/data\/etc\/dbus-serialbattery\//d" /data/rc.local
 ### needed for upgrading from older versions | end ###
 
 
