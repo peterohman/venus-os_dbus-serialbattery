@@ -67,7 +67,7 @@ Page {
 								width: parent.width
 								value: cellSum.value ?? NaN
 								unit: VenusOS.Units_Volt_DC
-								precision: 3
+								precision: 2
 								font.pixelSize: 22
 							}
 

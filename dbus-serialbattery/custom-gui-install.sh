@@ -175,10 +175,10 @@ if [ -d "$pathGuiV2" ]; then
             sourceQmlDir="3.6x"
             installGuiV2Check=0
         else
-            echo "|- >>> ERROR: GUIv2 installation for local display FAILED"
-            echo "|- >>>        Your Venus OS version $(head -n 1 /opt/victronenergy/version) is NOT SUPPORTED by this version of the driver."
-            echo "|- >>>        Update to the latest available driver to solve this issue. If you are using"
-            echo "|- >>>        Venus OS beta, please use the latest beta or nightly version of driver."
+            echo "|- >>> WARNING: GUIv2 installation for local display NOT SUPPORTED"
+            echo "|- >>>          Your Venus OS version $(head -n 1 /opt/victronenergy/version) is NOT SUPPORTED by this version of the driver."
+            echo "|- >>>          Update to the latest available driver to solve this issue. If you are using"
+            echo "|- >>>          Venus OS beta, please use the latest nightly or beta version of the driver."
             installGuiV2Check=1
         fi
 

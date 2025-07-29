@@ -12,12 +12,14 @@ if [ ! -d "/data/apps" ]; then
     mkdir -p /data/apps
 fi
 
-# check if at least 30 MB free space is available on the data partition
+# check if at least 70 MB free space is available on the data partition
+# - size of dbus-serialbattery app is about 50 MB
+# - size of unzipped GUIv2 wasm is about 15 MB
 freeSpace=$(df -m /data/apps | awk 'NR==2 {print $4}')
-if [ $freeSpace -lt 30 ]; then
+if [ $freeSpace -lt 70 ]; then
     echo
     echo
-    echo "ERROR: Not enough free space on the /data partition. At least 30 MB are required."
+    echo "ERROR: Not enough free space on the /data partition. At least 50 MB are required."
     echo
     echo "       Free up some space and try again."
     echo

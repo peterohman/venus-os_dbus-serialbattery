@@ -9,7 +9,7 @@
 * 🚨 The Bluetooth connection is still not stable on some systems. If you want to have a stable connection use the serial connection.
 
 
-## v2.0.x
+## v2.0.20250729
 
 ### Breaking Changes
 
@@ -107,12 +107,14 @@
 * Changed: Improved driver and `config.default.ini` descriptions by @mr-manuel
 * Changed: Improved handling when battery connection is lost by @mr-manuel
 * Changed: Improved some error messages for better understanding by @mr-manuel
+* Changed: Increased the minimum needed disk space from 30 MB to 70 MB by @mr-manuel
 * Changed: JKBMS BLE - Reworked code by @mr-manuel
 * Changed: JKBMS CAN - Per default only address 0 is recognized. Change `BATTERY_ADDRESS` to match your device address by @Hooorny and @mr-manuel
 * CHanged: JKBMS PB - Fixed incorrect offsets with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/283 by @gizmocuz
 * CHanged: JKBMS PB - Fixed serial number reading with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/270 by @marcelrv
 * Changed: Licensing from MIT license to GNU AGPLv3 license by @mr-manuel
 * Changed: LLT/JBD BLE - Fixed initial connection by @mr-manuel
+* Changed: Precision of voltage sum from 3 decimals to 2 decimals by @mr-manuel
 * Changed: Rebuild custom GUI install process by @mr-manuel
 * Changed: Refactored driver installation via USB/SD card by @mr-manuel
 * Changed: Renamed `install-qml.sh` to `custom-gui-install.sh` by @mr-manuel
