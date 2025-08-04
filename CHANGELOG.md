@@ -13,7 +13,7 @@
 
 ### What's Changed
 * Added: Venus OS 3.7x GUIv2 support by @mr-manuel
-
+* Changed: Fixed typo in activation instructions by @mr-manuel
 
 ## v2.0.20250729
 

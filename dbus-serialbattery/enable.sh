@@ -448,7 +448,7 @@ echo "       If your Bluetooth BMS are nearby you can show the MAC address with 
 echo
 echo "    2. Make sure to disable Bluetooth in \"Settings -> Bluetooth\" in the remote console/GUI to prevent reconnects every minute."
 echo
-echo "    3. Run \"/data/apps/dbus-serialbattery/restart.sh\", if the Bluetooth BMS were not added to the \"config.ini\" before."
+echo "    3. Run \"/data/apps/dbus-serialbattery/enable.sh\", if the Bluetooth BMS were not added to the \"config.ini\" before."
 echo
 echo "    ATTENTION!"
 echo "    If you changed the default connection PIN of your BMS, then you have to pair the BMS first using OS tools like the \"bluetoothctl\"."
@@ -462,7 +462,7 @@ echo
 echo "    2. In the remote console/GUI, go to 'Settings -> Services -> VE.Can port -> CAN-bus profile' and select a profile with a bitrate that "
 echo "       matches your BMS."
 echo
-echo "    3. Re-run \"/data/apps/dbus-serialbattery/restart.sh\", if the CAN port was not added to the \"config.ini\" before."
+echo "    3. Re-run \"/data/apps/dbus-serialbattery/enable.sh\", if the CAN port was not added to the \"config.ini\" before."
 echo
 echo "CUSTOM SETTINGS: If you want to add custom settings, then check the settings you want to change in \"/data/apps/dbus-serialbattery/config.default.ini\""
 echo "                 and add them to \"/data/apps/dbus-serialbattery/config.ini\" to persist future driver updates."
