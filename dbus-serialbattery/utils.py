@@ -92,7 +92,11 @@ for section in custom_config.sections() + ["DEFAULT"]:
                 errors_in_config.append(f'Option "{option}" in config.ini is not valid.')
 
 # Free up memory
-del default_config, custom_config, section, option
+del default_config, custom_config, section
+
+# Check if option variable was set and if yes, free it
+if "option" in locals():
+    del option
 
 
 # --------- Helper Functions ---------

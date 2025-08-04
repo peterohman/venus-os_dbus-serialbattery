@@ -97,6 +97,7 @@
 * Changed: Fix `/Info/BatteryLowVoltage` remaining `None` https://github.com/mr-manuel/venus-os_dbus-serialbattery/issues/145 by @mr-manuel
 * Changed: Fix double manipulation by `VOLTAGE_DROP` by @mr-manuel
 * Changed: Fix missing charge/discharge fet status for EG4 LifePower, EG4 LL and Renogy. Fixes https://github.com/mr-manuel/venus-os_dbus-serialbattery/issues/129 by @mr-manuel
+* Changed: Fixed driver starting issue when config.ini has no option by @mr-manuel
 * Changed: Fixed issue, when calculated SOC is restored from dbus and BMS SOC is 0 by @mr-manuel
 * Changed: Fixed issues when battery connection is lost by @mr-manuel
 * Changed: Fixed Seplos V3 cell balance status with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/213 by @marcelrv
