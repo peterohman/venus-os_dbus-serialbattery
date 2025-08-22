@@ -14,6 +14,7 @@
 ### What's Changed
 * Added: Venus OS 3.7x GUIv2 support by @mr-manuel
 * Changed: Fixed typo in activation instructions by @mr-manuel
+* Changed: JKBMS CAN - Correct calculation of arbitration_id for device_address > 0. Fixes https://github.com/mr-manuel/venus-os_dbus-serialbattery/issues/288 with https://github.com/mr-manuel/venus-os_dbus-serialbattery/pull/306 by @Hooorny
 
 ## v2.0.20250729
 
