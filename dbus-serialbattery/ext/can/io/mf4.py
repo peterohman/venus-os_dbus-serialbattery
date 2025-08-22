@@ -8,11 +8,12 @@ the ASAM MDF standard (see https://www.asam.net/standards/detail/mdf/)
 import abc
 import heapq
 import logging
+from collections.abc import Generator, Iterator
 from datetime import datetime
 from hashlib import md5
 from io import BufferedIOBase, BytesIO
 from pathlib import Path
-from typing import Any, BinaryIO, Dict, Generator, Iterator, List, Optional, Union, cast
+from typing import Any, BinaryIO, Optional, Union, cast
 
 from ..message import Message
 from ..typechecking import StringPathLike
@@ -124,7 +125,7 @@ class MF4Writer(BinaryIOMessageWriter):
 
         super().__init__(file, mode="w+b")
         now = datetime.now()
-        self._mdf = cast(MDF4, MDF(version="4.10"))
+        self._mdf = cast("MDF4", MDF(version="4.10"))
         self._mdf.header.start_time = now
         self.last_timestamp = self._start_time = now.timestamp()
 
@@ -184,7 +185,10 @@ class MF4Writer(BinaryIOMessageWriter):
     def file_size(self) -> int:
         """Return an estimate of the current file size in bytes."""
         # TODO: find solution without accessing private attributes of asammdf
-        return cast(int, self._mdf._tempfile.tell())  # pylint: disable=protected-access
+        return cast(
+            "int",
+            self._mdf._tempfile.tell(),  # pylint: disable=protected-access,no-member
+        )
 
     def stop(self) -> None:
         self._mdf.save(self.file, compression=self._compression_level)
@@ -270,7 +274,7 @@ class MF4Writer(BinaryIOMessageWriter):
         self._rtr_buffer = np.zeros(1, dtype=RTR_DTYPE)
 
 
-class FrameIterator(metaclass=abc.ABCMeta):
+class FrameIterator(abc.ABC):
     """
     Iterator helper class for common handling among CAN DataFrames, ErrorFrames and RemoteFrames.
     """
@@ -337,7 +341,7 @@ class MF4Reader(BinaryIOMessageReader):
                 for i in range(len(data)):
                     data_length = int(data["CAN_DataFrame.DataLength"][i])
 
-                    kv: Dict[str, Any] = {
+                    kv: dict[str, Any] = {
                         "timestamp": float(data.timestamps[i]) + self._start_timestamp,
                         "arbitration_id": int(data["CAN_DataFrame.ID"][i]) & 0x1FFFFFFF,
                         "data": data["CAN_DataFrame.DataBytes"][i][
@@ -348,7 +352,10 @@ class MF4Reader(BinaryIOMessageReader):
                     if "CAN_DataFrame.BusChannel" in names:
                         kv["channel"] = int(data["CAN_DataFrame.BusChannel"][i])
                     if "CAN_DataFrame.Dir" in names:
-                        kv["is_rx"] = int(data["CAN_DataFrame.Dir"][i]) == 0
+                        if data["CAN_DataFrame.Dir"][i].dtype.kind == "S":
+                            kv["is_rx"] = data["CAN_DataFrame.Dir"][i] == b"Rx"
+                        else:
+                            kv["is_rx"] = int(data["CAN_DataFrame.Dir"][i]) == 0
                     if "CAN_DataFrame.IDE" in names:
                         kv["is_extended_id"] = bool(data["CAN_DataFrame.IDE"][i])
                     if "CAN_DataFrame.EDL" in names:
@@ -375,7 +382,7 @@ class MF4Reader(BinaryIOMessageReader):
                 names = data.samples[0].dtype.names
 
                 for i in range(len(data)):
-                    kv: Dict[str, Any] = {
+                    kv: dict[str, Any] = {
                         "timestamp": float(data.timestamps[i]) + self._start_timestamp,
                         "is_error_frame": True,
                     }
@@ -383,7 +390,10 @@ class MF4Reader(BinaryIOMessageReader):
                     if "CAN_ErrorFrame.BusChannel" in names:
                         kv["channel"] = int(data["CAN_ErrorFrame.BusChannel"][i])
                     if "CAN_ErrorFrame.Dir" in names:
-                        kv["is_rx"] = int(data["CAN_ErrorFrame.Dir"][i]) == 0
+                        if data["CAN_ErrorFrame.Dir"][i].dtype.kind == "S":
+                            kv["is_rx"] = data["CAN_ErrorFrame.Dir"][i] == b"Rx"
+                        else:
+                            kv["is_rx"] = int(data["CAN_ErrorFrame.Dir"][i]) == 0
                     if "CAN_ErrorFrame.ID" in names:
                         kv["arbitration_id"] = (
                             int(data["CAN_ErrorFrame.ID"][i]) & 0x1FFFFFFF
@@ -426,7 +436,7 @@ class MF4Reader(BinaryIOMessageReader):
                 names = data.samples[0].dtype.names
 
                 for i in range(len(data)):
-                    kv: Dict[str, Any] = {
+                    kv: dict[str, Any] = {
                         "timestamp": float(data.timestamps[i]) + self._start_timestamp,
                         "arbitration_id": int(data["CAN_RemoteFrame.ID"][i])
                         & 0x1FFFFFFF,
@@ -437,7 +447,10 @@ class MF4Reader(BinaryIOMessageReader):
                     if "CAN_RemoteFrame.BusChannel" in names:
                         kv["channel"] = int(data["CAN_RemoteFrame.BusChannel"][i])
                     if "CAN_RemoteFrame.Dir" in names:
-                        kv["is_rx"] = int(data["CAN_RemoteFrame.Dir"][i]) == 0
+                        if data["CAN_RemoteFrame.Dir"][i].dtype.kind == "S":
+                            kv["is_rx"] = data["CAN_RemoteFrame.Dir"][i] == b"Rx"
+                        else:
+                            kv["is_rx"] = int(data["CAN_RemoteFrame.Dir"][i]) == 0
                     if "CAN_RemoteFrame.IDE" in names:
                         kv["is_extended_id"] = bool(data["CAN_RemoteFrame.IDE"][i])
 
@@ -463,16 +476,16 @@ class MF4Reader(BinaryIOMessageReader):
 
         self._mdf: MDF4
         if isinstance(file, BufferedIOBase):
-            self._mdf = cast(MDF4, MDF(BytesIO(file.read())))
+            self._mdf = cast("MDF4", MDF(BytesIO(file.read())))
         else:
-            self._mdf = cast(MDF4, MDF(file))
+            self._mdf = cast("MDF4", MDF(file))
 
         self._start_timestamp = self._mdf.header.start_time.timestamp()
 
     def __iter__(self) -> Iterator[Message]:
         # To handle messages split over multiple channel groups, create a single iterator per
         # channel group and merge these iterators into a single iterator using heapq.
-        iterators: List[FrameIterator] = []
+        iterators: list[FrameIterator] = []
         for group_index, group in enumerate(self._mdf.groups):
             channel_group: ChannelGroup = group.channel_group
 

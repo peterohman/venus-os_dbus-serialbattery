@@ -6,7 +6,8 @@ import io
 import logging
 import time
 import warnings
-from typing import Any, Optional, Tuple, Union
+from queue import SimpleQueue
+from typing import Any, Optional, Union, cast
 
 from can import BitTiming, BitTimingFd, BusABC, CanProtocol, Message, typechecking
 from can.exceptions import (
@@ -15,7 +16,12 @@ from can.exceptions import (
     CanOperationError,
     error_check,
 )
-from can.util import check_or_adjust_timing_clock, deprecated_args_alias
+from can.util import (
+    CAN_FD_DLC,
+    check_or_adjust_timing_clock,
+    deprecated_args_alias,
+    len2dlc,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +52,11 @@ class slcanBus(BusABC):
         750000: "S7",
         1000000: "S8",
         83300: "S9",
+    }
+    _DATA_BITRATES = {
+        0: "",
+        2000000: "Y2",
+        5000000: "Y5",
     }
 
     _SLEEP_AFTER_SERIAL_OPEN = 2  # in seconds
@@ -85,7 +96,8 @@ class slcanBus(BusABC):
             If this argument is set then it overrides the bitrate and btr arguments. The
             `f_clock` value of the timing instance must be set to 8_000_000 (8MHz)
             for standard CAN.
-            CAN FD and the :class:`~can.BitTimingFd` class are not supported.
+            CAN FD and the :class:`~can.BitTimingFd` class have partial support according to the non-standard
+            slcan protocol implementation in the CANABLE 2.0 firmware: currently only data rates of 2M and 5M.
         :param poll_interval:
             Poll interval in seconds when reading messages
         :param sleep_after_open:
@@ -131,6 +143,7 @@ class slcanBus(BusABC):
                 timeout=timeout,
             )
 
+        self._queue: SimpleQueue[str] = SimpleQueue()
         self._buffer = bytearray()
         self._can_protocol = CanProtocol.CAN_20
 
@@ -141,9 +154,7 @@ class slcanBus(BusABC):
                 timing = check_or_adjust_timing_clock(timing, valid_clocks=[8_000_000])
                 self.set_bitrate_reg(f"{timing.btr0:02X}{timing.btr1:02X}")
             elif isinstance(timing, BitTimingFd):
-                raise NotImplementedError(
-                    f"CAN FD is not supported by {self.__class__.__name__}."
-                )
+                self.set_bitrate(timing.nom_bitrate, timing.data_bitrate)
             else:
                 if bitrate is not None and btr is not None:
                     raise ValueError("Bitrate and btr mutually exclusive.")
@@ -155,10 +166,12 @@ class slcanBus(BusABC):
 
         super().__init__(channel, **kwargs)
 
-    def set_bitrate(self, bitrate: int) -> None:
+    def set_bitrate(self, bitrate: int, data_bitrate: Optional[int] = None) -> None:
         """
         :param bitrate:
             Bitrate in bit/s
+        :param data_bitrate:
+            Data Bitrate in bit/s for FD frames
 
         :raise ValueError: if ``bitrate`` is not among the possible values
         """
@@ -168,8 +181,19 @@ class slcanBus(BusABC):
             bitrates = ", ".join(str(k) for k in self._BITRATES.keys())
             raise ValueError(f"Invalid bitrate, choose one of {bitrates}.")
 
+        # If data_bitrate is None, we set it to 0 which means no data bitrate
+        if data_bitrate is None:
+            data_bitrate = 0
+
+        if data_bitrate in self._DATA_BITRATES:
+            dbitrate_code = self._DATA_BITRATES[data_bitrate]
+        else:
+            dbitrates = ", ".join(str(k) for k in self._DATA_BITRATES.keys())
+            raise ValueError(f"Invalid data bitrate, choose one of {dbitrates}.")
+
         self.close()
         self._write(bitrate_code)
+        self._write(dbitrate_code)
         self.open()
 
     def set_bitrate_reg(self, btr: str) -> None:
@@ -196,7 +220,7 @@ class slcanBus(BusABC):
                 # We read the `serialPortOrig.in_waiting` only once here.
                 in_waiting = self.serialPortOrig.in_waiting
                 for _ in range(max(1, in_waiting)):
-                    new_byte = self.serialPortOrig.read(size=1)
+                    new_byte = self.serialPortOrig.read(1)
                     if new_byte:
                         self._buffer.extend(new_byte)
                     else:
@@ -228,13 +252,18 @@ class slcanBus(BusABC):
 
     def _recv_internal(
         self, timeout: Optional[float]
-    ) -> Tuple[Optional[Message], bool]:
+    ) -> tuple[Optional[Message], bool]:
         canId = None
         remote = False
         extended = False
         data = None
+        isFd = False
+        fdBrs = False
 
-        string = self._read(timeout)
+        if self._queue.qsize():
+            string: Optional[str] = self._queue.get_nowait()
+        else:
+            string = self._read(timeout)
 
         if not string:
             pass
@@ -263,6 +292,34 @@ class slcanBus(BusABC):
             dlc = int(string[9])
             extended = True
             remote = True
+        elif string[0] == "d":
+            # FD standard frame
+            canId = int(string[1:4], 16)
+            dlc = int(string[4], 16)
+            isFd = True
+            data = bytearray.fromhex(string[5 : 5 + CAN_FD_DLC[dlc] * 2])
+        elif string[0] == "D":
+            # FD extended frame
+            canId = int(string[1:9], 16)
+            dlc = int(string[9], 16)
+            extended = True
+            isFd = True
+            data = bytearray.fromhex(string[10 : 10 + CAN_FD_DLC[dlc] * 2])
+        elif string[0] == "b":
+            # FD with bitrate switch
+            canId = int(string[1:4], 16)
+            dlc = int(string[4], 16)
+            isFd = True
+            fdBrs = True
+            data = bytearray.fromhex(string[5 : 5 + CAN_FD_DLC[dlc] * 2])
+        elif string[0] == "B":
+            # FD extended with bitrate switch
+            canId = int(string[1:9], 16)
+            dlc = int(string[9], 16)
+            extended = True
+            isFd = True
+            fdBrs = True
+            data = bytearray.fromhex(string[10 : 10 + CAN_FD_DLC[dlc] * 2])
 
         if canId is not None:
             msg = Message(
@@ -270,7 +327,9 @@ class slcanBus(BusABC):
                 is_extended_id=extended,
                 timestamp=time.time(),  # Better than nothing...
                 is_remote_frame=remote,
-                dlc=dlc,
+                is_fd=isFd,
+                bitrate_switch=fdBrs,
+                dlc=CAN_FD_DLC[dlc],
                 data=data,
             )
             return msg, False
@@ -284,6 +343,20 @@ class slcanBus(BusABC):
                 sendStr = f"R{msg.arbitration_id:08X}{msg.dlc:d}"
             else:
                 sendStr = f"r{msg.arbitration_id:03X}{msg.dlc:d}"
+        elif msg.is_fd:
+            fd_dlc = len2dlc(msg.dlc)
+            if msg.bitrate_switch:
+                if msg.is_extended_id:
+                    sendStr = f"B{msg.arbitration_id:08X}{fd_dlc:X}"
+                else:
+                    sendStr = f"b{msg.arbitration_id:03X}{fd_dlc:X}"
+                sendStr += msg.data.hex().upper()
+            else:
+                if msg.is_extended_id:
+                    sendStr = f"D{msg.arbitration_id:08X}{fd_dlc:X}"
+                else:
+                    sendStr = f"d{msg.arbitration_id:03X}{fd_dlc:X}"
+                sendStr += msg.data.hex().upper()
         else:
             if msg.is_extended_id:
                 sendStr = f"T{msg.arbitration_id:08X}{msg.dlc:d}"
@@ -300,7 +373,7 @@ class slcanBus(BusABC):
 
     def fileno(self) -> int:
         try:
-            return self.serialPortOrig.fileno()
+            return cast("int", self.serialPortOrig.fileno())
         except io.UnsupportedOperation:
             raise NotImplementedError(
                 "fileno is not implemented using current CAN bus on this platform"
@@ -310,7 +383,7 @@ class slcanBus(BusABC):
 
     def get_version(
         self, timeout: Optional[float]
-    ) -> Tuple[Optional[int], Optional[int]]:
+    ) -> tuple[Optional[int], Optional[int]]:
         """Get HW and SW version of the slcan interface.
 
         :param timeout:
@@ -321,19 +394,21 @@ class slcanBus(BusABC):
             int hw_version is the hardware version or None on timeout
             int sw_version is the software version or None on timeout
         """
+        _timeout = serial.Timeout(timeout)
         cmd = "V"
         self._write(cmd)
 
-        string = self._read(timeout)
-
-        if not string:
-            pass
-        elif string[0] == cmd and len(string) == 6:
-            # convert ASCII coded version
-            hw_version = int(string[1:3])
-            sw_version = int(string[3:5])
-            return hw_version, sw_version
-
+        while True:
+            if string := self._read(_timeout.time_left()):
+                if string[0] == cmd:
+                    # convert ASCII coded version
+                    hw_version = int(string[1:3])
+                    sw_version = int(string[3:5])
+                    return hw_version, sw_version
+                else:
+                    self._queue.put_nowait(string)
+            if _timeout.expired():
+                break
         return None, None
 
     def get_serial_number(self, timeout: Optional[float]) -> Optional[str]:
@@ -345,15 +420,17 @@ class slcanBus(BusABC):
         :return:
             :obj:`None` on timeout or a :class:`str` object.
         """
+        _timeout = serial.Timeout(timeout)
         cmd = "N"
         self._write(cmd)
 
-        string = self._read(timeout)
-
-        if not string:
-            pass
-        elif string[0] == cmd and len(string) == 6:
-            serial_number = string[1:-1]
-            return serial_number
-
+        while True:
+            if string := self._read(_timeout.time_left()):
+                if string[0] == cmd:
+                    serial_number = string[1:-1]
+                    return serial_number
+                else:
+                    self._queue.put_nowait(string)
+            if _timeout.expired():
+                break
         return None

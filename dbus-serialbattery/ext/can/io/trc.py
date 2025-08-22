@@ -9,9 +9,11 @@ Version 1.1 will be implemented as it is most commonly used
 
 import logging
 import os
+from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Callable, Dict, Generator, Optional, TextIO, Tuple, Union
+from io import TextIOWrapper
+from typing import Any, Callable, Optional, TextIO, Union
 
 from ..message import Message
 from ..typechecking import StringPathLike
@@ -30,8 +32,8 @@ class TRCFileVersion(Enum):
     V2_0 = 200
     V2_1 = 201
 
-    def __ge__(self, other):
-        if self.__class__ is other.__class__:
+    def __ge__(self, other: Any) -> bool:
+        if isinstance(other, TRCFileVersion):
             return self.value >= other.value
         return NotImplemented
 
@@ -40,8 +42,6 @@ class TRCReader(TextIOMessageReader):
     """
     Iterator of CAN messages from a TRC logging file.
     """
-
-    file: TextIO
 
     def __init__(
         self,
@@ -56,13 +56,13 @@ class TRCReader(TextIOMessageReader):
         super().__init__(file, mode="r")
         self.file_version = TRCFileVersion.UNKNOWN
         self._start_time: float = 0
-        self.columns: Dict[str, int] = {}
+        self.columns: dict[str, int] = {}
         self._num_columns = -1
 
         if not self.file:
             raise ValueError("The given file cannot be None")
 
-        self._parse_cols: Callable[[Tuple[str, ...]], Optional[Message]] = (
+        self._parse_cols: Callable[[tuple[str, ...]], Optional[Message]] = (
             lambda x: None
         )
 
@@ -72,7 +72,7 @@ class TRCReader(TextIOMessageReader):
             return datetime.fromtimestamp(self._start_time, timezone.utc)
         return None
 
-    def _extract_header(self):
+    def _extract_header(self) -> str:
         line = ""
         for _line in self.file:
             line = _line.strip()
@@ -140,7 +140,7 @@ class TRCReader(TextIOMessageReader):
 
         return line
 
-    def _parse_msg_v1_0(self, cols: Tuple[str, ...]) -> Optional[Message]:
+    def _parse_msg_v1_0(self, cols: tuple[str, ...]) -> Optional[Message]:
         arbit_id = cols[2]
         if arbit_id == "FFFFFFFF":
             logger.info("TRCReader: Dropping bus info line")
@@ -152,10 +152,13 @@ class TRCReader(TextIOMessageReader):
         msg.is_extended_id = len(arbit_id) > 4
         msg.channel = 1
         msg.dlc = int(cols[3])
-        msg.data = bytearray([int(cols[i + 4], 16) for i in range(msg.dlc)])
+        if len(cols) > 4 and cols[4] == "RTR":
+            msg.is_remote_frame = True
+        else:
+            msg.data = bytearray([int(cols[i + 4], 16) for i in range(msg.dlc)])
         return msg
 
-    def _parse_msg_v1_1(self, cols: Tuple[str, ...]) -> Optional[Message]:
+    def _parse_msg_v1_1(self, cols: tuple[str, ...]) -> Optional[Message]:
         arbit_id = cols[3]
 
         msg = Message()
@@ -164,11 +167,14 @@ class TRCReader(TextIOMessageReader):
         msg.is_extended_id = len(arbit_id) > 4
         msg.channel = 1
         msg.dlc = int(cols[4])
-        msg.data = bytearray([int(cols[i + 5], 16) for i in range(msg.dlc)])
+        if len(cols) > 5 and cols[5] == "RTR":
+            msg.is_remote_frame = True
+        else:
+            msg.data = bytearray([int(cols[i + 5], 16) for i in range(msg.dlc)])
         msg.is_rx = cols[2] == "Rx"
         return msg
 
-    def _parse_msg_v1_3(self, cols: Tuple[str, ...]) -> Optional[Message]:
+    def _parse_msg_v1_3(self, cols: tuple[str, ...]) -> Optional[Message]:
         arbit_id = cols[4]
 
         msg = Message()
@@ -177,11 +183,14 @@ class TRCReader(TextIOMessageReader):
         msg.is_extended_id = len(arbit_id) > 4
         msg.channel = int(cols[2])
         msg.dlc = int(cols[6])
-        msg.data = bytearray([int(cols[i + 7], 16) for i in range(msg.dlc)])
+        if len(cols) > 7 and cols[7] == "RTR":
+            msg.is_remote_frame = True
+        else:
+            msg.data = bytearray([int(cols[i + 7], 16) for i in range(msg.dlc)])
         msg.is_rx = cols[3] == "Rx"
         return msg
 
-    def _parse_msg_v2_x(self, cols: Tuple[str, ...]) -> Optional[Message]:
+    def _parse_msg_v2_x(self, cols: tuple[str, ...]) -> Optional[Message]:
         type_ = cols[self.columns["T"]]
         bus = self.columns.get("B", None)
 
@@ -199,7 +208,8 @@ class TRCReader(TextIOMessageReader):
         msg.is_extended_id = len(cols[self.columns["I"]]) > 4
         msg.channel = int(cols[bus]) if bus is not None else 1
         msg.dlc = dlc
-        if dlc:
+        msg.is_remote_frame = type_ in {"RR"}
+        if dlc and not msg.is_remote_frame:
             msg.data = bytearray.fromhex(cols[self.columns["D"]])
         msg.is_rx = cols[self.columns["d"]] == "Rx"
         msg.is_fd = type_ in {"FD", "FB", "FE", "BI"}
@@ -208,7 +218,7 @@ class TRCReader(TextIOMessageReader):
 
         return msg
 
-    def _parse_cols_v1_1(self, cols: Tuple[str, ...]) -> Optional[Message]:
+    def _parse_cols_v1_1(self, cols: tuple[str, ...]) -> Optional[Message]:
         dtype = cols[2]
         if dtype in ("Tx", "Rx"):
             return self._parse_msg_v1_1(cols)
@@ -216,7 +226,7 @@ class TRCReader(TextIOMessageReader):
             logger.info("TRCReader: Unsupported type '%s'", dtype)
             return None
 
-    def _parse_cols_v1_3(self, cols: Tuple[str, ...]) -> Optional[Message]:
+    def _parse_cols_v1_3(self, cols: tuple[str, ...]) -> Optional[Message]:
         dtype = cols[3]
         if dtype in ("Tx", "Rx"):
             return self._parse_msg_v1_3(cols)
@@ -224,9 +234,9 @@ class TRCReader(TextIOMessageReader):
             logger.info("TRCReader: Unsupported type '%s'", dtype)
             return None
 
-    def _parse_cols_v2_x(self, cols: Tuple[str, ...]) -> Optional[Message]:
+    def _parse_cols_v2_x(self, cols: tuple[str, ...]) -> Optional[Message]:
         dtype = cols[self.columns["T"]]
-        if dtype in {"DT", "FD", "FB", "FE", "BI"}:
+        if dtype in {"DT", "FD", "FB", "FE", "BI", "RR"}:
             return self._parse_msg_v2_x(cols)
         else:
             logger.info("TRCReader: Unsupported type '%s'", dtype)
@@ -275,9 +285,6 @@ class TRCWriter(TextIOMessageWriter):
     If the first message does not have a timestamp, it is set to zero.
     """
 
-    file: TextIO
-    first_timestamp: Optional[float]
-
     FORMAT_MESSAGE = (
         "{msgnr:>7} {time:13.3f} DT {channel:>2} {id:>8} {dir:>2} -  {dlc:<4} {data}"
     )
@@ -285,7 +292,7 @@ class TRCWriter(TextIOMessageWriter):
 
     def __init__(
         self,
-        file: Union[StringPathLike, TextIO],
+        file: Union[StringPathLike, TextIO, TextIOWrapper],
         channel: int = 1,
         **kwargs: Any,
     ) -> None:
@@ -307,7 +314,7 @@ class TRCWriter(TextIOMessageWriter):
         self.filepath = os.path.abspath(self.file.name)
         self.header_written = False
         self.msgnr = 0
-        self.first_timestamp = None
+        self.first_timestamp: Optional[float] = None
         self.file_version = TRCFileVersion.V2_1
         self._msg_fmt_string = self.FORMAT_MESSAGE_V1_0
         self._format_message = self._format_message_init
@@ -359,7 +366,7 @@ class TRCWriter(TextIOMessageWriter):
         ]
         self.file.writelines(line + "\n" for line in lines)
 
-    def _format_message_by_format(self, msg, channel):
+    def _format_message_by_format(self, msg: Message, channel: int) -> str:
         if msg.is_extended_id:
             arb_id = f"{msg.arbitration_id:07X}"
         else:
@@ -367,6 +374,8 @@ class TRCWriter(TextIOMessageWriter):
 
         data = [f"{byte:02X}" for byte in msg.data]
 
+        if self.first_timestamp is None:
+            raise ValueError
         serialized = self._msg_fmt_string.format(
             msgnr=self.msgnr,
             time=(msg.timestamp - self.first_timestamp) * 1000,
@@ -378,7 +387,7 @@ class TRCWriter(TextIOMessageWriter):
         )
         return serialized
 
-    def _format_message_init(self, msg, channel):
+    def _format_message_init(self, msg: Message, channel: int) -> str:
         if self.file_version == TRCFileVersion.V1_0:
             self._format_message = self._format_message_by_format
             self._msg_fmt_string = self.FORMAT_MESSAGE_V1_0
