@@ -50,7 +50,7 @@ function restore_config {
         if [ -d "/data/apps/dbus-serialbattery" ]; then
             mv /data/apps/dbus-serialbattery_config.ini.backup /data/apps/dbus-serialbattery/config.ini
             echo "Config.ini restored to /data/apps/dbus-serialbattery/config.ini"
-        # restore to driver < v2.0.0 (downlgrade)
+        # restore to driver < v2.0.0 (downgrade)
         elif [ -d "/data/etc/dbus-serialbattery" ]; then
             mv /data/apps/dbus-serialbattery_config.ini.backup /data/etc/dbus-serialbattery/config.ini
             echo "Config.ini restored to /data/etc/dbus-serialbattery/config.ini"
@@ -87,7 +87,7 @@ if [ -z "$1" ]; then
     latest_release_mrmanuel_stable=$(curl -s https://api.github.com/repos/mr-manuel/venus-os_dbus-serialbattery/releases/latest | sed -nE 's/.*"tag_name": "([^"]+)".*/\1/p')
 
     # mr-manuel beta
-    latest_release_mrmanuel_beta=$(curl -s https://api.github.com/repos/mr-manuel/venus-os_dbus-serialbattery/releases | sed -nE 's/.*"tag_name": "([^"]+)".*/\1/p' | head -n 1)
+    latest_release_mrmanuel_beta=$(curl -s https://api.github.com/repos/mr-manuel/venus-os_dbus-serialbattery/releases | sed -nE 's/.*"tag_name": "([^"]+(rc|beta))".*/\1/p' | head -n 1)
 
     # mr-manuel master branch
     latest_release_mrmanuel_nightly=$(curl -s https://raw.githubusercontent.com/mr-manuel/venus-os_dbus-serialbattery/master/dbus-serialbattery/utils.py | grep DRIVER_VERSION | awk -F'"' '{print "v" $2}')
@@ -113,7 +113,7 @@ if [ -z "$1" ]; then
 
 
     echo
-    PS3=$'\nSelect which version you want to install from m-rmanuel\'s repo and enter the corresponding number: '
+    PS3=$'\nSelect which version you want to install from mr-manuel\'s repo and enter the corresponding number: '
 
     # create list of versions
     version_list=(
@@ -204,6 +204,11 @@ if [ "$version" = "stable" ]; then
     echo "Downloading stable release from mr-manuel's repo..."
     echo ""
     curl -s https://api.github.com/repos/mr-manuel/venus-os_dbus-serialbattery/releases/latest | sed -nE 's/.*"browser_download_url": "([^"]+)".*/\1/p' | wget -O /tmp/venus-data.tar.gz -i -
+    # check if the download was successful
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Error during downloading the TAR file. Please try again."
+        exit 1
+    fi
     echo ""
 fi
 
@@ -213,6 +218,11 @@ if [ "$version" = "beta" ]; then
     echo "Downloading beta release from mr-manuel's repo..."
     echo ""
     curl -s https://api.github.com/repos/mr-manuel/venus-os_dbus-serialbattery/releases/tags/$latest_release_mrmanuel_beta | sed -nE 's/.*"browser_download_url": "([^"]+)".*/\1/p' | wget -O /tmp/venus-data.tar.gz -i -
+    # check if the download was successful
+    if [ $? -ne 0 ]; then
+        echo "ERROR: Error during downloading the TAR file. Please try again."
+        exit 1
+    fi
     echo ""
 fi
 
@@ -224,23 +234,17 @@ if [ "$version" = "specific_version" ]; then
     echo "Downloading specific version from $tar_url..."
     echo ""
     wget -O /tmp/venus-data.tar.gz "$tar_url"
-    echo ""
     if [ $? -ne 0 ]; then
         echo "ERROR: Error during downloading the TAR file. Please check, if the URL is correct."
         exit 1
     fi
+    echo ""
 fi
 
 ## local tar file
 if [ "$version" = "local" ]; then
     echo "Make sure the file is available at \"/tmp/venus-data.tar.gz\"."
     echo
-fi
-
-
-# create /data/apps if it do not exist
-if [ ! -d "/data/apps" ]; then
-    mkdir -p /data/apps
 fi
 
 
@@ -348,8 +352,6 @@ if [ "$version" = "nightly" ] || [ "$version" = "specific_branch" ]; then
     echo "Downloading branch \"$branch\" from mr-manuel's repo..."
     echo ""
     wget -O /tmp/$branch.zip https://github.com/mr-manuel/venus-os_dbus-serialbattery/archive/refs/heads/$branch.zip
-    echo ""
-
     # check if the download was successful
     if [ $? -ne 0 ]; then
         echo "ERROR: Error during downloading the ZIP file. Please try again."
@@ -357,6 +359,7 @@ if [ "$version" = "nightly" ] || [ "$version" = "specific_branch" ]; then
         restore_config
         exit 1
     fi
+    echo ""
 
     # extract archive
     # driver >= v2.0.0
