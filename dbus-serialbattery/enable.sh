@@ -234,7 +234,7 @@ if [ "$bluetooth_length" -gt 0 ]; then
     /etc/init.d/bluetooth start
     echo
 
-    # function to install ble battery
+    # function to install BLE battery
     install_blebattery_service() {
         if [ -z "$1" ]; then
             echo "ERROR: BMS unique number is empty. Aborting installation."
@@ -346,6 +346,8 @@ if ls /service/dbus-canbattery.* 1> /dev/null 2>&1; then
     pkill -f "supervise dbus-canbattery.*"
     pkill -f "multilog .* /var/log/dbus-canbattery.*"
     pkill -f "python .*/dbus-serialbattery.py can.*"
+    pkill -f "python .*/dbus-serialbattery.py vcan.*"
+    pkill -f "python .*/dbus-serialbattery.py vecan.*"
 fi
 
 
@@ -360,7 +362,7 @@ if [ "$can_lenght" -gt 0 ]; then
     # - opkg install python3-pip
     # - pip3 install python-can
 
-    # function to install can battery
+    # function to install CAN battery
     install_canbattery_service() {
         if [ -z "$1" ]; then
             echo "ERROR: CAN port is empty. Aborting installation."

@@ -963,7 +963,7 @@ class Battery(ABC):
                             "soc_reset_last_reached: "
                             + ("Never" if self.soc_reset_last_reached == 0 else f"{soc_reset_days_ago} d ago")
                             + ", next "
-                            + (" already planned" if soc_reset_in_days < 0 else "in {soc_reset_in_days} d")
+                            + (" already planned" if soc_reset_in_days < 0 else f"in {soc_reset_in_days} d")
                             + "\n"
                         )
                         if utils.SOC_RESET_AFTER_DAYS is not False
